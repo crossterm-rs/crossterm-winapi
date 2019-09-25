@@ -28,4 +28,3 @@ script:
   - if [ "$TRAVIS_RUST_VERSION" = "stable" ]; then cargo fmt --all -- --check; fi
   - cargo build
   - cargo test --all-features -- --nocapture --test-threads 1
-  - cargo package
