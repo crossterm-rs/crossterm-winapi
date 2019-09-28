@@ -20,11 +20,11 @@ pub struct ConsoleMode {
 impl ConsoleMode {
     /// Create a new `ConsoleMode` instance.
     ///
-    /// This will use the `STD_OUTPUT_HANDLE` as default handle.
+    /// This will use the `STD_INPUT_HANDLE` as default handle.
     /// When you explicitly want to specify the handle used for the function calls use `ConsoleMode::from(handle)` instead.
     pub fn new() -> Result<ConsoleMode> {
         Ok(ConsoleMode {
-            handle: Handle::new(HandleType::OutputHandle)?,
+            handle: Handle::new(HandleType::InputHandle)?,
         })
     }
 
