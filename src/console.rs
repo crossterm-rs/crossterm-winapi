@@ -163,15 +163,11 @@ impl Console {
         Ok(utf8.as_bytes().len())
     }
 
-    pub fn read_single_input_event(&self) -> Result<Option<InputRecord>> {
-        let buf_len = self.number_of_console_input_events()?;
-
+    pub fn read_single_input_event(&self) -> Result<InputRecord> {
         let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(1);
         let mut size = 0;
 
-
-        /// TODO: remove Option from function.
-        return Ok(Some(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned()));
+        return Ok(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned());
     }
 
     pub fn read_console_input(&self) -> Result<(u32, Vec<InputRecord>)> {
