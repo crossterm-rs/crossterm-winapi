@@ -164,20 +164,14 @@ impl Console {
     }
 
     pub fn read_single_input_event(&self) -> Result<Option<InputRecord>> {
-        // loop until we have events, TODO: replace with async
-        loop {
-            let buf_len = self.number_of_console_input_events()?;
+        let buf_len = self.number_of_console_input_events()?;
 
-            // Fast-skipping all the code below if there is nothing to read at all
-            if buf_len == 0 {
-                continue;
-            }
+        let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(1);
+        let mut size = 0;
 
-            let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(1);
-            let mut size = 0;
 
-            return Ok(Some(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned()));
-        }
+        /// TODO: remove Option from function.
+        return Ok(Some(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned()));
     }
 
     pub fn read_console_input(&self) -> Result<(u32, Vec<InputRecord>)> {
