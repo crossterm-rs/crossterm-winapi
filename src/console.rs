@@ -163,21 +163,11 @@ impl Console {
         Ok(utf8.as_bytes().len())
     }
 
-    pub fn read_single_input_event(&self) -> Result<Option<InputRecord>> {
-        let buf_len = self.number_of_console_input_events()?;
-
-        // Fast-skipping all the code below if there is nothing to read at all
-        if buf_len == 0 {
-            return Ok(None);
-        }
-
+    pub fn read_single_input_event(&self) -> Result<InputRecord> {
         let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(1);
         let mut size = 0;
 
-        let a = self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned();
-
-        // read single input event
-        Ok(Some(a))
+        return Ok(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned());
     }
 
     pub fn read_console_input(&self) -> Result<(u32, Vec<InputRecord>)> {
