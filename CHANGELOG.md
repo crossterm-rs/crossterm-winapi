@@ -1,3 +1,7 @@
+# Version 0.2.2
+
+- Make read sync block for windows systems
+
 # Version 0.2.1
 
 - Maintenance release only
