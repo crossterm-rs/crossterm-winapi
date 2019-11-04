@@ -1,7 +1,6 @@
 use std::io::{Error, Result};
 
 use winapi::um::consoleapi::{GetConsoleMode, SetConsoleMode};
-use winapi::um::winnt::HANDLE;
 
 use super::{is_true, Handle, HandleType};
 
@@ -58,14 +57,6 @@ impl ConsoleMode {
             }
         }
         Ok(console_mode)
-    }
-}
-
-impl From<HANDLE> for ConsoleMode {
-    fn from(handle: HANDLE) -> Self {
-        ConsoleMode {
-            handle: Handle::from(handle),
-        }
     }
 }
 

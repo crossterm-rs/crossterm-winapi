@@ -12,17 +12,22 @@ use winapi::{
             CreateConsoleScreenBuffer, GetConsoleScreenBufferInfo, SetConsoleActiveScreenBuffer,
             SetConsoleScreenBufferSize, CONSOLE_TEXTMODE_BUFFER, COORD,
         },
-        winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE, HANDLE},
+        winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
     },
 };
 
 use super::{is_true, Handle, HandleType, ScreenBufferInfo};
 
+#[derive(Clone)]
 pub struct ScreenBuffer {
     handle: Handle,
 }
 
 impl ScreenBuffer {
+    pub fn new(handle: Handle) -> Self {
+        Self { handle }
+    }
+
     /// Create an instance of `ScreenBuffer` where the `HANDLE`, used for the functions this type wraps, is the current output handle.
     pub fn current() -> Result<ScreenBuffer> {
         Ok(ScreenBuffer {
@@ -51,7 +56,7 @@ impl ScreenBuffer {
                 NULL,
             );
             ScreenBuffer {
-                handle: Handle::from(new_screen_buffer),
+                handle: Handle::from_raw(new_screen_buffer),
             }
         }
     }
@@ -110,14 +115,6 @@ impl ScreenBuffer {
 impl From<Handle> for ScreenBuffer {
     fn from(handle: Handle) -> Self {
         ScreenBuffer { handle }
-    }
-}
-
-impl From<HANDLE> for ScreenBuffer {
-    fn from(handle: HANDLE) -> Self {
-        ScreenBuffer {
-            handle: Handle::from(handle),
-        }
     }
 }
 

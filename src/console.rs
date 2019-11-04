@@ -6,12 +6,9 @@ use winapi::ctypes::c_void;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::ntdef::NULL;
 use winapi::um::consoleapi::{GetNumberOfConsoleInputEvents, ReadConsoleInputW, WriteConsoleW};
-use winapi::um::{
-    wincon::{
-        FillConsoleOutputAttribute, FillConsoleOutputCharacterA, GetLargestConsoleWindowSize,
-        SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, INPUT_RECORD, SMALL_RECT,
-    },
-    winnt::HANDLE,
+use winapi::um::wincon::{
+    FillConsoleOutputAttribute, FillConsoleOutputCharacterA, GetLargestConsoleWindowSize,
+    SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, INPUT_RECORD, SMALL_RECT,
 };
 
 use super::{is_true, Coord, Handle, HandleType, InputRecord, WindowPositions};
@@ -25,7 +22,7 @@ impl Console {
     /// Create new instance of `Console`.
     ///
     /// This created instance will use the default output handle (STD_OUTPUT_HANDLE) as handle for the function call it wraps.
-    pub fn new() -> Result<Console> {
+    pub fn output() -> Result<Console> {
         Ok(Console {
             handle: Handle::new(HandleType::OutputHandle)?,
         })
@@ -223,14 +220,5 @@ impl From<Handle> for Console {
     /// Create a `Console` instance who's functions will be executed on the the given `Handle`
     fn from(handle: Handle) -> Self {
         Console { handle }
-    }
-}
-
-impl From<HANDLE> for Console {
-    /// Create a `Console` instance who's functions will be executed on the the given `HANDLE`
-    fn from(handle: HANDLE) -> Self {
-        Console {
-            handle: Handle::from(handle),
-        }
     }
 }

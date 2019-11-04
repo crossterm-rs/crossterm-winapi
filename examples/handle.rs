@@ -19,7 +19,7 @@ fn main() -> Result<()> {
     let handle /*:HANDLE*/ = *out_put_handle;
 
     // you can also pass you own `HANDLE` to create an instance of `Handle`
-    let handle = Handle::from(handle); /* winapi::um::winnt::HANDLE */
+    let handle = unsafe { Handle::from_raw(handle) }; /* winapi::um::winnt::HANDLE */
 
     Ok(())
 }
