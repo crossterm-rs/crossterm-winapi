@@ -1,3 +1,6 @@
+# Version 0.4.0
+- The `Handle` API has been reworked to make it `Send` + `Sync` and close the underlying `HANDLE` when dropped ([PR #7](https://github.com/crossterm-rs/crossterm-winapi/pull/7)).
+
 # Version 0.3.0
 
 - Make read sync block for windows systems ([PR #2](https://github.com/crossterm-rs/crossterm-winapi/pull/2))

@@ -3,10 +3,11 @@
 use std::io::{self, Result};
 use std::ops::Deref;
 use std::ptr::null_mut;
+use std::sync::Arc;
 
 use winapi::um::{
     fileapi::{CreateFileW, OPEN_EXISTING},
-    handleapi::INVALID_HANDLE_VALUE,
+    handleapi::{CloseHandle, INVALID_HANDLE_VALUE},
     processenv::GetStdHandle,
     winbase::{STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
     winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE, HANDLE},
@@ -28,23 +29,57 @@ pub enum HandleType {
     CurrentInputHandle,
 }
 
+/// Inner structure for closing a handle on Drop.
+///
+/// The second parameter indicates if the HANDLE is exclusively owned or not.
+/// A non-exclusive handle can be created using for example
+/// `Handle::input_handle` or `Handle::output_handle`, which corresponds to
+/// stdin and stdout respectively.
+struct Inner(HANDLE, bool);
+
+impl Drop for Inner {
+    fn drop(&mut self) {
+        if self.1 {
+            assert!(
+                unsafe { CloseHandle(self.0) != 0 },
+                "failed to close handle"
+            )
+        }
+    }
+}
+
 /// This abstracts away some WinaApi calls to set and get some console handles.
 ///
 // Wraps the underlying WinApi type: [HANDLE]
+#[repr(transparent)]
+#[derive(Clone)]
 pub struct Handle {
-    handle: HANDLE,
+    handle: Arc<Inner>,
 }
+
+unsafe impl Send for Handle {}
+unsafe impl Sync for Handle {}
 
 impl Handle {
     pub fn new(handle: HandleType) -> Result<Handle> {
-        let handle = match handle {
+        match handle {
             HandleType::OutputHandle => Handle::output_handle(),
             HandleType::InputHandle => Handle::input_handle(),
             HandleType::CurrentOutputHandle => Handle::current_out_handle(),
             HandleType::CurrentInputHandle => Handle::current_in_handle(),
-        }?;
+        }
+    }
 
-        Ok(Handle { handle })
+    /// Construct a handle from a raw handle.
+    ///
+    /// # Safety
+    ///
+    /// This is unsafe since there is not guarantee that the underlying HANDLE is thread-safe to implement `Send` and `Sync`.
+    /// Most HANDLE's however, are thread safe.
+    pub unsafe fn from_raw(handle: HANDLE) -> Self {
+        Self {
+            handle: Arc::new(Inner(handle, true)),
+        }
     }
 
     /// Get the handle of the active screen buffer.
@@ -56,7 +91,7 @@ impl Handle {
     ///
     /// Wraps the underlying function call: [CreateFileW]
     /// link: [https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilew]
-    pub fn current_out_handle() -> Result<HANDLE> {
+    pub fn current_out_handle() -> Result<Handle> {
         let utf16: Vec<u16> = "CONOUT$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
 
@@ -72,12 +107,14 @@ impl Handle {
             )
         };
 
-        if !Handle::is_valid_handle(&handle) {
+        if !Self::is_valid_handle(&handle) {
             println!("invalid!!");
             return Err(io::Error::last_os_error());
         }
 
-        Ok(handle)
+        Ok(Handle {
+            handle: Arc::new(Inner(handle, true)),
+        })
     }
 
     /// Get the handle of the active input screen buffer.
@@ -89,7 +126,7 @@ impl Handle {
     ///
     /// Wraps the underlying function call: [CreateFileW]
     /// link: [https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilew]
-    pub fn current_in_handle() -> Result<HANDLE> {
+    pub fn current_in_handle() -> Result<Handle> {
         let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
 
@@ -109,7 +146,9 @@ impl Handle {
             return Err(io::Error::last_os_error());
         }
 
-        Ok(handle)
+        Ok(Handle {
+            handle: Arc::new(Inner(handle, true)),
+        })
     }
 
     /// Get the handle of the output screen buffer.
@@ -118,16 +157,16 @@ impl Handle {
     ///
     /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_OUTPUT_HANDLE`
     /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
-    pub fn output_handle() -> Result<HANDLE> {
-        unsafe {
-            let handle = GetStdHandle(STD_OUTPUT_HANDLE);
+    pub fn output_handle() -> Result<Handle> {
+        let handle = unsafe { GetStdHandle(STD_OUTPUT_HANDLE) };
 
-            if !Handle::is_valid_handle(&handle) {
-                return Err(io::Error::last_os_error());
-            }
-
-            Ok(handle)
+        if !Handle::is_valid_handle(&handle) {
+            return Err(io::Error::last_os_error());
         }
+
+        Ok(Handle {
+            handle: Arc::new(Inner(handle, false)),
+        })
     }
 
     /// Get the handle of the input screen buffer.
@@ -136,16 +175,16 @@ impl Handle {
     ///
     /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_INPUT_HANDLE`
     /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
-    pub fn input_handle() -> Result<HANDLE> {
-        unsafe {
-            let handle = GetStdHandle(STD_INPUT_HANDLE);
+    pub fn input_handle() -> Result<Handle> {
+        let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
 
-            if !Handle::is_valid_handle(&handle) {
-                return Err(io::Error::last_os_error());
-            }
-
-            Ok(handle)
+        if !Handle::is_valid_handle(&handle) {
+            return Err(io::Error::last_os_error());
         }
+
+        Ok(Handle {
+            handle: Arc::new(Inner(handle, false)),
+        })
     }
 
     /// Checks if the console handle is an invalid handle value.
@@ -164,13 +203,7 @@ impl Deref for Handle {
     type Target = HANDLE;
 
     fn deref(&self) -> &<Self as Deref>::Target {
-        &self.handle
-    }
-}
-
-impl From<HANDLE> for Handle {
-    fn from(handle: HANDLE) -> Self {
-        Handle { handle }
+        &self.handle.0
     }
 }
 

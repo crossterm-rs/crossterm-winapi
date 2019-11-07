@@ -21,7 +21,7 @@ fn set_background_color() -> Result<()> {
     let new_color = fg_color | BLUE_BACKGROUND;
 
     // set the console text attribute to the new color value.
-    Console::from(**screen_buffer.handle()).set_text_attribute(new_color)?;
+    Console::from(screen_buffer.handle().clone()).set_text_attribute(new_color)?;
 
     Ok(())
 }
@@ -47,7 +47,7 @@ fn set_foreground_color() -> Result<()> {
     }
 
     // set the console text attribute to the new color value.
-    Console::from(**screen_buffer.handle()).set_text_attribute(color)?;
+    Console::from(screen_buffer.handle().clone()).set_text_attribute(color)?;
 
     Ok(())
 }
