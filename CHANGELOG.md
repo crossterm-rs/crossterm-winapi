@@ -1,5 +1,5 @@
 # Version 0.4.0
-- The `Handle` API has been reworked to make it `Send` + `Sync` and close the underlying `HANDLE` when dropped ([PR #7](https://github.com/crossterm-rs/crossterm-winapi/pull/7)).
+- The `Handle` API has been reworked to make it `Send` + `Sync` and close the underlying `HANDLE` when dropped.
 
 # Version 0.3.0
 
