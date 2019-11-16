@@ -7,6 +7,7 @@ pub use self::{
     csbi::ScreenBufferInfo,
     handle::{Handle, HandleType},
     screen_buffer::ScreenBuffer,
+    semaphore::Semaphore,
     structs::{
         ButtonState, ControlKeyState, Coord, EventFlags, InputEventType, InputRecord,
         KeyEventRecord, MouseEvent, Size, WindowPositions,
@@ -18,6 +19,7 @@ mod console_mode;
 mod csbi;
 mod handle;
 mod screen_buffer;
+mod semaphore;
 mod structs;
 
 /// Parses the given integer to an bool by checking if the value is 0 or 1.

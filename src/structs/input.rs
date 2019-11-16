@@ -16,6 +16,10 @@ use winapi::um::wincon::{
 };
 
 use super::coord::Coord;
+use winapi::um::wincontypes::{
+    FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED, FROM_LEFT_3RD_BUTTON_PRESSED,
+    FROM_LEFT_4TH_BUTTON_PRESSED, RIGHTMOST_BUTTON_PRESSED,
+};
 
 /// Describes a keyboard input event in a console INPUT_RECORD structure.
 /// link: [https://docs.microsoft.com/en-us/windows/console/key-event-record-str]
@@ -85,38 +89,70 @@ impl From<MOUSE_EVENT_RECORD> for MouseEvent {
 ///
 /// [Ms Docs](https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str#members)
 #[derive(PartialOrd, PartialEq, Debug, Copy, Clone)]
-pub enum ButtonState {
-    Release = 0x0000,
-    /// The leftmost mouse button.
-    FromLeft1stButtonPressed = 0x0001,
-    /// The second button from the left.
-    FromLeft2ndButtonPressed = 0x0004,
-    /// The third button from the left.
-    FromLeft3rdButtonPressed = 0x0008,
-    /// The fourth button from the left.
-    FromLeft4thButtonPressed = 0x0010,
-    /// The rightmost mouse button.
-    RightmostButtonPressed = 0x0002,
-    /// This button state is not recognized.
-    Unknown = 0x0021,
-    /// The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
-    Negative = 0x0020,
+pub struct ButtonState {
+    state: i32,
 }
+
+//Release = 0x0000,
+///// The leftmost mouse button.
+//FromLeft1stButtonPressed = 0x0001,
+///// The second button from the left.
+//FromLeft2ndButtonPressed = 0x0004,
+///// The third button from the left.
+//FromLeft3rdButtonPressed = 0x0008,
+///// The fourth button from the left.
+//FromLeft4thButtonPressed = 0x0010,
+///// The rightmost mouse button.
+//RightmostButtonPressed = 0x0002,
+///// This button state is not recognized.
+//Unknown = 0x0021,
+///// The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
+//Negative = 0x0020,
 
 impl From<DWORD> for ButtonState {
     fn from(event: DWORD) -> Self {
-        let e = event as i32;
+        let state = event as i32;
+        ButtonState { state }
+    }
+}
 
-        match e {
-            0x0000 => ButtonState::Release,
-            0x0001 => ButtonState::FromLeft1stButtonPressed,
-            0x0004 => ButtonState::FromLeft2ndButtonPressed,
-            0x0008 => ButtonState::FromLeft3rdButtonPressed,
-            0x0010 => ButtonState::FromLeft4thButtonPressed,
-            0x0002 => ButtonState::RightmostButtonPressed,
-            _ if e < 0 => ButtonState::Negative,
-            _ => ButtonState::Unknown,
-        }
+impl ButtonState {
+    pub fn release_button(&self) -> bool {
+        self.state == 0
+    }
+
+    /// Returns whether the left button was pressed.
+    pub fn left_button(&self) -> bool {
+        self.state as u32 & FROM_LEFT_1ST_BUTTON_PRESSED != 0
+    }
+
+    /// Returns whether the right button was pressed.
+    pub fn right_button(&self) -> bool {
+        self.state as u32
+            & (RIGHTMOST_BUTTON_PRESSED
+                | FROM_LEFT_3RD_BUTTON_PRESSED
+                | FROM_LEFT_4TH_BUTTON_PRESSED)
+            != 0
+    }
+
+    /// Returns whether the right button was pressed.
+    pub fn middle_button(&self) -> bool {
+        self.state as u32 & FROM_LEFT_2ND_BUTTON_PRESSED != 0
+    }
+
+    /// Returns whether there is a down scroll.
+    pub fn scroll_down(&self) -> bool {
+        self.state < 0
+    }
+
+    /// Returns whether there is a up scroll.
+    pub fn scroll_up(&self) -> bool {
+        self.state > 0
+    }
+
+    /// Returns the raw state.
+    pub fn state(&self) -> u32 {
+        self.state()
     }
 }
 
