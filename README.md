@@ -23,6 +23,7 @@ The following WinApi calls:
 - FillConsoleOutputAttribute, FillConsoleOutputCharacter (used to replace some block of cells with a color or character.)
 - SetConsoleInfo
 - ReadConsoleW
+- Semaphore object handling
 
 # Example 
 

@@ -1,3 +1,7 @@
+# Version 0.5.0 
+- Add `Semaphore` object handling
+- Make `ButtonState` more flexible.
+
 # Version 0.4.0
 - The `Handle` API has been reworked to make it `Send` + `Sync` and close the underlying `HANDLE` when dropped.
 
