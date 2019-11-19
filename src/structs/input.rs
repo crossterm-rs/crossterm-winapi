@@ -87,28 +87,28 @@ impl From<MOUSE_EVENT_RECORD> for MouseEvent {
 /// The bits then correspond left to right to the mouse buttons.
 /// A bit is 1 if the button was pressed.
 ///
+/// The state can be one of the following:
+/// Release = 0x0000,
+/// // The leftmost mouse button.
+/// FromLeft1stButtonPressed = 0x0001,
+/// // The second button from the left.
+/// FromLeft2ndButtonPressed = 0x0004,
+/// // The third button from the left.
+/// FromLeft3rdButtonPressed = 0x0008,
+/// // The fourth button from the left.
+/// FromLeft4thButtonPressed = 0x0010,
+/// // The rightmost mouse button.
+/// RightmostButtonPressed = 0x0002,
+/// // This button state is not recognized.
+/// Unknown = 0x0021,
+/// // The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
+/// Negative = 0x0020,
+///
 /// [Ms Docs](https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str#members)
 #[derive(PartialOrd, PartialEq, Debug, Copy, Clone)]
 pub struct ButtonState {
     state: i32,
 }
-
-//Release = 0x0000,
-///// The leftmost mouse button.
-//FromLeft1stButtonPressed = 0x0001,
-///// The second button from the left.
-//FromLeft2ndButtonPressed = 0x0004,
-///// The third button from the left.
-//FromLeft3rdButtonPressed = 0x0008,
-///// The fourth button from the left.
-//FromLeft4thButtonPressed = 0x0010,
-///// The rightmost mouse button.
-//RightmostButtonPressed = 0x0002,
-///// This button state is not recognized.
-//Unknown = 0x0021,
-///// The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
-//Negative = 0x0020,
-
 impl From<DWORD> for ButtonState {
     fn from(event: DWORD) -> Self {
         let state = event as i32;
@@ -151,8 +151,8 @@ impl ButtonState {
     }
 
     /// Returns the raw state.
-    pub fn state(&self) -> u32 {
-        self.state()
+    pub fn state(&self) -> i32 {
+        self.state
     }
 }
 
