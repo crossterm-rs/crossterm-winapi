@@ -1,11 +1,9 @@
+use crate::Handle;
 use std::{io, ptr};
-use winapi::um::{
-    handleapi::CloseHandle,
-    synchapi::{CreateSemaphoreW, ReleaseSemaphore},
-    winnt::HANDLE,
-};
+use winapi::um::synchapi::{CreateSemaphoreW, ReleaseSemaphore};
 
-pub struct Semaphore(HANDLE);
+#[derive(Clone)]
+pub struct Semaphore(Handle);
 
 impl Semaphore {
     /// Construct a new semaphore.
@@ -16,12 +14,13 @@ impl Semaphore {
             return Err(io::Error::last_os_error());
         }
 
+        let handle = unsafe { Handle::from_raw(handle) };
         Ok(Self(handle))
     }
 
     /// Release a permit on the semaphore.
     pub fn release(&self) -> io::Result<()> {
-        let result = unsafe { ReleaseSemaphore(self.0, 1, ptr::null_mut()) };
+        let result = unsafe { ReleaseSemaphore(*self.0, 1, ptr::null_mut()) };
 
         if result == 0 {
             return Err(io::Error::last_os_error());
@@ -31,17 +30,8 @@ impl Semaphore {
     }
 
     /// Access the underlying handle to the semaphore.
-    pub fn handle(&self) -> HANDLE {
-        self.0
-    }
-}
-
-impl Drop for Semaphore {
-    fn drop(&mut self) {
-        assert!(
-            unsafe { CloseHandle(self.0) } != 0,
-            "failed to close handle"
-        );
+    pub fn handle(&self) -> &Handle {
+        &self.0
     }
 }
 
