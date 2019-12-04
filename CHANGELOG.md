@@ -1,3 +1,6 @@
+# Version 0.5.1
+- Make `Semaphore` implement `Clone`.
+
 # Version 0.5.0 
 - Add `Semaphore` object handling
 - Make `ButtonState` more flexible.
