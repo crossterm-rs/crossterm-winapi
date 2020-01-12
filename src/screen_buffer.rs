@@ -18,7 +18,7 @@ use winapi::{
 
 use super::{is_true, Handle, HandleType, ScreenBufferInfo};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ScreenBuffer {
     handle: Handle,
 }

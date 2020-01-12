@@ -2,7 +2,7 @@ use crate::Handle;
 use std::{io, ptr};
 use winapi::um::synchapi::{CreateSemaphoreW, ReleaseSemaphore};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Semaphore(Handle);
 
 impl Semaphore {
@@ -34,7 +34,3 @@ impl Semaphore {
         &self.0
     }
 }
-
-unsafe impl Send for Semaphore {}
-
-unsafe impl Sync for Semaphore {}

@@ -1,7 +1,6 @@
 pub use self::coord::Coord;
 pub use self::input::{
-    ButtonState, ControlKeyState, EventFlags, InputEventType, InputRecord, KeyEventRecord,
-    MouseEvent,
+    ButtonState, ControlKeyState, EventFlags, InputRecord, KeyEventRecord, MouseEvent,
 };
 pub use self::size::Size;
 pub use self::window_coords::WindowPositions;

@@ -1,7 +1,13 @@
+# master
+- Added Common traits (`Debug`, `Clone`, etc) to many public facing types,
+especially data struct.
+- Significantly updated the `input` structs, so that winapi native types are no longer exposed to the library by crossterm_winapi structs.
+- Removed PartialOrd from types where it didn't really make sense
+
 # Version 0.5.1
 - Make `Semaphore` implement `Clone`.
 
-# Version 0.5.0 
+# Version 0.5.0
 - Add `Semaphore` object handling
 - Make `ButtonState` more flexible.
 
