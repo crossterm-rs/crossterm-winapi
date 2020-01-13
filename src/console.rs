@@ -203,20 +203,27 @@ impl Console {
         if is_true(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) }) {
             Ok(buf_len)
         } else {
-            Err(Error::last_os_error());
+            Err(Error::last_os_error())
         }
     }
 
     /// Read input (via ReadConsoleInputW) into buf and return the number
     /// of events read. ReadConsoleInputW guarantees that at least one event
-    /// is read, even if it means blocking the thread.
+    /// is read, even if it means blocking the thread. buf.len() must fit in
+    /// a u32.
     fn read_input(&self, buf: &mut [INPUT_RECORD]) -> Result<usize> {
         let mut num_records = 0;
+        debug_assert!(buf.len() < std::u32::MAX as usize);
 
         if !is_true(unsafe {
-            ReadConsoleInputW(*self.handle, buf.as_mut_ptr(), buf.len(), &mut num_records)
+            ReadConsoleInputW(
+                *self.handle,
+                buf.as_mut_ptr(),
+                buf.len() as u32,
+                &mut num_records,
+            )
         }) {
-            Err(Error::last_os_error());
+            Err(Error::last_os_error())
         } else {
             Ok(num_records as usize)
         }
