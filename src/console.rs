@@ -1,5 +1,6 @@
 use std::borrow::ToOwned;
 use std::io::{self, Error, Result};
+use std::slice;
 use std::str;
 
 use winapi::ctypes::c_void;
@@ -161,58 +162,64 @@ impl Console {
     }
 
     pub fn read_single_input_event(&self) -> Result<InputRecord> {
-        let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(1);
-        let mut size = 0;
+        let mut record: INPUT_RECORD = INPUT_RECORD::default();
 
-        return Ok(self.read_input(&mut buf, 1, &mut size)?.1[0].to_owned());
+        {
+            // Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
+            let buf = slice::from_mut(&mut record);
+            let num_read = self.read_input(buf)?;
+
+            // The windows API promises that ReadConsoleInput returns at least
+            // 1 element
+            debug_assert!(num_read == 1);
+        }
+
+        Ok(record.into())
     }
 
-    pub fn read_console_input(&self) -> Result<(u32, Vec<InputRecord>)> {
+    pub fn read_console_input(&self) -> Result<Vec<InputRecord>> {
         let buf_len = self.number_of_console_input_events()?;
 
         // Fast-skipping all the code below if there is nothing to read at all
         if buf_len == 0 {
-            return Ok((0, vec![]));
+            return Ok(vec![]);
         }
 
-        let mut buf: Vec<INPUT_RECORD> = Vec::with_capacity(buf_len as usize);
-        let mut size = 0;
+        let mut buf: Vec<INPUT_RECORD> = iter::repeat_with(INPUT_RECORD::default)
+            .take(buf_len as usize)
+            .collect();
 
-        self.read_input(&mut buf, buf_len, &mut size)
+        let num_read = self.read_input(buf.as_mut_slice())?;
+
+        Ok(buf
+            .into_iter()
+            .take(num_read)
+            .map(InputRecord::from)
+            .collect())
     }
 
     pub fn number_of_console_input_events(&self) -> Result<u32> {
         let mut buf_len: DWORD = 0;
-        if !is_true(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) }) {
-            return Err(Error::last_os_error());
+        if is_true(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) }) {
+            Ok(buf_len)
+        } else {
+            Err(Error::last_os_error());
         }
-
-        Ok(buf_len)
     }
 
-    fn read_input(
-        &self,
-        buf: &mut Vec<INPUT_RECORD>,
-        buf_len: u32,
-        bytes_written: &mut u32,
-    ) -> Result<(u32, Vec<InputRecord>)> {
-        if !is_true(unsafe {
-            ReadConsoleInputW(*self.handle, buf.as_mut_ptr(), buf_len, bytes_written)
-        }) {
-            return Err(Error::last_os_error());
-        } else {
-            unsafe {
-                buf.set_len(buf_len as usize);
-            }
-        }
+    /// Read input (via ReadConsoleInputW) into buf and return the number
+    /// of events read. ReadConsoleInputW guarantees that at least one event
+    /// is read, even if it means blocking the thread.
+    fn read_input(&self, buf: &mut [INPUT_RECORD]) -> Result<usize> {
+        let mut num_records = 0;
 
-        Ok((
-            buf_len,
-            buf[..(buf_len as usize)]
-                .iter()
-                .map(|x| InputRecord::from(*x))
-                .collect::<Vec<InputRecord>>(),
-        ))
+        if !is_true(unsafe {
+            ReadConsoleInputW(*self.handle, buf.as_mut_ptr(), buf.len(), &mut num_records)
+        }) {
+            Err(Error::last_os_error());
+        } else {
+            Ok(num_records as usize)
+        }
     }
 }
 
