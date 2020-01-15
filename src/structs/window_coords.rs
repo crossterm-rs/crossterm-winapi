@@ -17,12 +17,7 @@ pub struct WindowPositions {
 
 impl From<CONSOLE_SCREEN_BUFFER_INFO> for WindowPositions {
     fn from(csbi: CONSOLE_SCREEN_BUFFER_INFO) -> Self {
-        WindowPositions {
-            left: csbi.srWindow.Left,
-            right: csbi.srWindow.Right,
-            bottom: csbi.srWindow.Bottom,
-            top: csbi.srWindow.Top,
-        }
+        csbi.srWindow.into()
     }
 }
 
@@ -33,6 +28,17 @@ impl From<WindowPositions> for SMALL_RECT {
             Right: positions.right,
             Bottom: positions.bottom,
             Left: positions.left,
+        }
+    }
+}
+
+impl From<SMALL_RECT> for WindowPositions {
+    fn from(rect: SMALL_RECT) -> Self {
+        WindowPositions {
+            left: rect.Left,
+            right: rect.Right,
+            bottom: rect.Bottom,
+            top: rect.Top,
         }
     }
 }

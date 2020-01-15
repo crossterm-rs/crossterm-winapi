@@ -1,3 +1,4 @@
+use std::fmt;
 use std::mem::zeroed;
 
 use winapi::um::wincon::CONSOLE_SCREEN_BUFFER_INFO;
@@ -8,7 +9,26 @@ use super::{Coord, Size, WindowPositions};
 ///
 /// Wraps the underlying type: [CONSOLE_SCREEN_BUFFER_INFO]
 /// link: [https://docs.microsoft.com/en-us/windows/console/console-screen-buffer-info-str]
+// TODO: replace the innards of this type with our own, more friendly types, like Coord.
+// This will obviously be a breaking change.
+#[derive(Clone)]
 pub struct ScreenBufferInfo(pub CONSOLE_SCREEN_BUFFER_INFO);
+
+// TODO: replace this with a derive ASAP
+impl fmt::Debug for ScreenBufferInfo {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("ScreenBufferInfo")
+            .field("dwSize", &self.buffer_size())
+            .field("dwCursorPosition", &self.cursor_pos())
+            .field("wAttributes", &self.attributes()) // TODO: hex print this
+            .field("srWindow", &self.terminal_window())
+            .field(
+                "dwMaximumWindowSize",
+                &Size::from(self.0.dwMaximumWindowSize),
+            )
+            .finish()
+    }
+}
 
 impl ScreenBufferInfo {
     pub fn new() -> ScreenBufferInfo {

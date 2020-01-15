@@ -15,6 +15,7 @@ use winapi::um::wincon::{
 use super::{is_true, Coord, Handle, HandleType, InputRecord, WindowPositions};
 
 /// Could be used to do some basic things with the console.
+#[derive(Debug, Clone)]
 pub struct Console {
     handle: Handle,
 }

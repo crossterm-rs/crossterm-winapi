@@ -11,6 +11,7 @@ use super::{is_true, Handle, HandleType};
 ///
 /// Wraps the underlying function call: [GetConsoleMode]
 /// link: [https://docs.microsoft.com/en-us/windows/console/getconsolemode]
+#[derive(Debug, Clone)]
 pub struct ConsoleMode {
     // the handle used for the functions of this type.
     handle: Handle,

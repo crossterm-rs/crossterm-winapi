@@ -9,8 +9,8 @@ pub use self::{
     screen_buffer::ScreenBuffer,
     semaphore::Semaphore,
     structs::{
-        ButtonState, ControlKeyState, Coord, EventFlags, InputEventType, InputRecord,
-        KeyEventRecord, MouseEvent, Size, WindowPositions,
+        ButtonState, ControlKeyState, Coord, EventFlags, InputRecord, KeyEventRecord, MouseEvent,
+        Size, WindowPositions,
     },
 };
 
@@ -25,10 +25,7 @@ mod structs;
 /// Parses the given integer to an bool by checking if the value is 0 or 1.
 /// This is currently used for checking if a WinApi called succeeded, this might be moved into a macro at some time.
 /// So please don't use this :(.
+#[inline(always)]
 pub fn is_true(value: i32) -> bool {
-    if value == 0 {
-        return false;
-    } else {
-        return true;
-    }
+    value != 0
 }

@@ -5,6 +5,7 @@ use std::ops::Deref;
 use std::ptr::null_mut;
 use std::sync::Arc;
 
+use winapi::shared::minwindef::DWORD;
 use winapi::um::{
     fileapi::{CreateFileW, OPEN_EXISTING},
     handleapi::{CloseHandle, INVALID_HANDLE_VALUE},
@@ -16,6 +17,7 @@ use winapi::um::{
 /// This enum represents the different handles that could be requested.
 ///
 /// Some more details could be found [here](https://docs.microsoft.com/en-us/windows/console/getstdhandle#parameters)
+#[derive(Debug, Clone, Copy)]
 pub enum HandleType {
     /// This represents the `STD_OUTPUT_HANDLE`
     OutputHandle,
@@ -35,13 +37,33 @@ pub enum HandleType {
 /// A non-exclusive handle can be created using for example
 /// `Handle::input_handle` or `Handle::output_handle`, which corresponds to
 /// stdin and stdout respectively.
-struct Inner(HANDLE, bool);
+#[derive(Debug)]
+struct Inner {
+    handle: HANDLE,
+    is_exclusive: bool,
+}
+
+impl Inner {
+    fn new_exclusive(handle: HANDLE) -> Self {
+        Inner {
+            handle,
+            is_exclusive: true,
+        }
+    }
+
+    fn new_shared(handle: HANDLE) -> Self {
+        Inner {
+            handle,
+            is_exclusive: false,
+        }
+    }
+}
 
 impl Drop for Inner {
     fn drop(&mut self) {
-        if self.1 {
+        if self.is_exclusive {
             assert!(
-                unsafe { CloseHandle(self.0) != 0 },
+                unsafe { CloseHandle(self.handle) != 0 },
                 "failed to close handle"
             )
         }
@@ -51,14 +73,10 @@ impl Drop for Inner {
 /// This abstracts away some WinaApi calls to set and get some console handles.
 ///
 // Wraps the underlying WinApi type: [HANDLE]
-#[repr(transparent)]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Handle {
     handle: Arc<Inner>,
 }
-
-unsafe impl Send for Handle {}
-unsafe impl Sync for Handle {}
 
 impl Handle {
     pub fn new(handle: HandleType) -> Result<Handle> {
@@ -78,7 +96,7 @@ impl Handle {
     /// Most HANDLE's however, are thread safe.
     pub unsafe fn from_raw(handle: HANDLE) -> Self {
         Self {
-            handle: Arc::new(Inner(handle, true)),
+            handle: Arc::new(Inner::new_exclusive(handle)),
         }
     }
 
@@ -113,7 +131,7 @@ impl Handle {
         }
 
         Ok(Handle {
-            handle: Arc::new(Inner(handle, true)),
+            handle: Arc::new(Inner::new_exclusive(handle)),
         })
     }
 
@@ -147,7 +165,7 @@ impl Handle {
         }
 
         Ok(Handle {
-            handle: Arc::new(Inner(handle, true)),
+            handle: Arc::new(Inner::new_exclusive(handle)),
         })
     }
 
@@ -158,15 +176,7 @@ impl Handle {
     /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_OUTPUT_HANDLE`
     /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
     pub fn output_handle() -> Result<Handle> {
-        let handle = unsafe { GetStdHandle(STD_OUTPUT_HANDLE) };
-
-        if !Handle::is_valid_handle(&handle) {
-            return Err(io::Error::last_os_error());
-        }
-
-        Ok(Handle {
-            handle: Arc::new(Inner(handle, false)),
-        })
+        Self::std_handle(STD_OUTPUT_HANDLE)
     }
 
     /// Get the handle of the input screen buffer.
@@ -176,15 +186,19 @@ impl Handle {
     /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_INPUT_HANDLE`
     /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
     pub fn input_handle() -> Result<Handle> {
-        let handle = unsafe { GetStdHandle(STD_INPUT_HANDLE) };
+        Self::std_handle(STD_INPUT_HANDLE)
+    }
+
+    fn std_handle(which_std: DWORD) -> Result<Handle> {
+        let handle = unsafe { GetStdHandle(which_std) };
 
         if !Handle::is_valid_handle(&handle) {
-            return Err(io::Error::last_os_error());
+            Err(io::Error::last_os_error())
+        } else {
+            Ok(Handle {
+                handle: Arc::new(Inner::new_shared(handle)),
+            })
         }
-
-        Ok(Handle {
-            handle: Arc::new(Inner(handle, false)),
-        })
     }
 
     /// Checks if the console handle is an invalid handle value.
@@ -202,8 +216,8 @@ impl Handle {
 impl Deref for Handle {
     type Target = HANDLE;
 
-    fn deref(&self) -> &<Self as Deref>::Target {
-        &self.handle.0
+    fn deref(&self) -> &HANDLE {
+        &self.handle.handle
     }
 }
 
