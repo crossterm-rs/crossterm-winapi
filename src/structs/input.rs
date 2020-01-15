@@ -188,7 +188,7 @@ pub enum EventFlags {
     MouseWheeled = 0x0004,
 }
 
-// TODO: Replace with TryFrom
+// TODO: Replace with TryFrom.
 impl From<DWORD> for EventFlags {
     fn from(event: DWORD) -> Self {
         match event {
@@ -250,7 +250,6 @@ impl From<MENU_EVENT_RECORD> for MenuEventRecord {
 /// `WriteConsoleInput` function.
 ///
 /// [Ms Docs](https://docs.microsoft.com/en-us/windows/console/input-record-str)
-// TODO: convert this to an enum
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InputRecord {
     /// The Event member contains a `KEY_EVENT_RECORD` structure with
