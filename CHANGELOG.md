@@ -1,4 +1,4 @@
-# master
+# Version 0.6.0
 - Added Common traits (`Debug`, `Clone`, etc) to many public facing types,
 especially data struct.
 - Significantly updated the `input` structs, so that winapi native types are no longer exposed to the library by crossterm_winapi structs.
