@@ -3,6 +3,9 @@
 especially data struct.
 - Significantly updated the `input` structs, so that winapi native types are no longer exposed to the library by crossterm_winapi structs.
 - Removed PartialOrd from types where it didn't really make sense
+- Reimplemented `Console::read_single_input_event` and `Console::read_console_input` to be more efficient, safe, and correct
+- Make `Console::read_console_input` not return a `u32`; the numbr of events is the length of the returned vector.
+
 
 # Version 0.5.1
 - Make `Semaphore` implement `Clone`.
