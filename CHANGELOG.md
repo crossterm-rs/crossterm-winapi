@@ -1,3 +1,6 @@
+# Version 0.6.1
+- Make semaphore Send and Sync again.
+
 # Version 0.6.0
 - Added Common traits (`Debug`, `Clone`, etc) to many public facing types,
 especially data struct.
