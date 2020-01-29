@@ -70,6 +70,10 @@ impl Drop for Inner {
     }
 }
 
+unsafe impl Send for Inner {}
+
+unsafe impl Sync for Inner {}
+
 /// This abstracts away some WinaApi calls to set and get some console handles.
 ///
 // Wraps the underlying WinApi type: [HANDLE]

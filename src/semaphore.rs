@@ -34,3 +34,7 @@ impl Semaphore {
         &self.0
     }
 }
+
+unsafe impl Send for Semaphore {}
+
+unsafe impl Sync for Semaphore {}

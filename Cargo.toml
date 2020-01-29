@@ -1,6 +1,6 @@
 [package]
 name = "crossterm_winapi"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["T. Post"]
 description = "WinAPI wrapper that provides some basic simple abstractions around common WinAPI calls"
 repository = "https://github.com/crossterm-rs/crossterm-winapi"
