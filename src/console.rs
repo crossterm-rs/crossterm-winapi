@@ -6,10 +6,13 @@ use std::str;
 use winapi::ctypes::c_void;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::ntdef::NULL;
-use winapi::um::consoleapi::{GetNumberOfConsoleInputEvents, ReadConsoleInputW, WriteConsoleW};
+use winapi::um::consoleapi::{
+    GetConsoleMode, GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleMode, WriteConsoleW,
+};
 use winapi::um::wincon::{
     FillConsoleOutputAttribute, FillConsoleOutputCharacterA, GetLargestConsoleWindowSize,
-    SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, INPUT_RECORD, SMALL_RECT,
+    SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, ENABLE_WRAP_AT_EOL_OUTPUT, INPUT_RECORD,
+    SMALL_RECT,
 };
 
 use super::{is_true, Coord, Handle, HandleType, InputRecord, WindowPositions};
@@ -228,6 +231,42 @@ impl Console {
         } else {
             Ok(num_records as usize)
         }
+    }
+
+    /// Enable line wrapping.
+    ///
+    /// Wraps the underlying function call: [SetConsoleMode]
+    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsolemode]
+    pub fn enable_line_wrap(&self) -> Result<()> {
+        unsafe {
+            let mut current_mode = 0;
+            if !is_true(GetConsoleMode(*self.handle, &mut current_mode)) {
+                return Err(Error::last_os_error());
+            }
+            current_mode |= ENABLE_WRAP_AT_EOL_OUTPUT;
+            if !is_true(SetConsoleMode(*self.handle, current_mode)) {
+                return Err(Error::last_os_error());
+            }
+        }
+        Ok(())
+    }
+
+    /// Disable line wrapping.
+    ///
+    /// Wraps the underlying function call: [SetConsoleMode]
+    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsolemode]
+    pub fn disable_line_wrap(&self) -> Result<()> {
+        unsafe {
+            let mut current_mode = 0;
+            if !is_true(GetConsoleMode(*self.handle, &mut current_mode)) {
+                return Err(Error::last_os_error());
+            }
+            current_mode &= !ENABLE_WRAP_AT_EOL_OUTPUT;
+            if !is_true(SetConsoleMode(*self.handle, current_mode)) {
+                return Err(Error::last_os_error());
+            }
+        }
+        Ok(())
     }
 }
 
