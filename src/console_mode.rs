@@ -53,7 +53,6 @@ impl ConsoleMode {
         let mut console_mode = 0;
         unsafe {
             if !is_true(GetConsoleMode(*self.handle, &mut console_mode)) {
-                println!("Getting mode failed");
                 return Err(Error::last_os_error());
             }
         }

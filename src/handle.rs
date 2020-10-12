@@ -130,7 +130,6 @@ impl Handle {
         };
 
         if !Self::is_valid_handle(&handle) {
-            println!("invalid!!");
             return Err(io::Error::last_os_error());
         }
 
