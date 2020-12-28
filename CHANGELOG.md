@@ -1,3 +1,6 @@
+# Version 0.7.0
+- Make resize event return correct screen dimensions instead of buffers size.
+
 # Version 0.6.1
 - Make semaphore `Send` and `Sync` again.
 - Make `Inner` `Send` and `Sync` again.
