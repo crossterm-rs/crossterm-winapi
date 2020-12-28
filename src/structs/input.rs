@@ -278,18 +278,17 @@ impl From<INPUT_RECORD> for InputRecord {
                 record.Event.KeyEvent()
             })),
             MOUSE_EVENT => InputRecord::MouseEvent(unsafe { *record.Event.MouseEvent() }.into()),
-            WINDOW_BUFFER_SIZE_EVENT => InputRecord::WindowBufferSizeEvent(
-                {
-                    let mut buffer = unsafe { WindowBufferSizeRecord::from(*record.Event.WindowBufferSizeEvent()) };
-                    let window = ScreenBuffer::current().unwrap().info().unwrap();
-                    let screen_size = window.terminal_size();
+            WINDOW_BUFFER_SIZE_EVENT => InputRecord::WindowBufferSizeEvent({
+                let mut buffer =
+                    unsafe { WindowBufferSizeRecord::from(*record.Event.WindowBufferSizeEvent()) };
+                let window = ScreenBuffer::current().unwrap().info().unwrap();
+                let screen_size = window.terminal_size();
 
-                    buffer.size.y = screen_size.height;
-                    buffer.size.x = screen_size.width;
+                buffer.size.y = screen_size.height;
+                buffer.size.x = screen_size.width;
 
-                    buffer
-                }
-            ),
+                buffer
+            }),
             FOCUS_EVENT => InputRecord::FocusEvent(unsafe { *record.Event.FocusEvent() }.into()),
             MENU_EVENT => InputRecord::MenuEvent(unsafe { *record.Event.MenuEvent() }.into()),
             code => panic!("Unexpected INPUT_RECORD EventType: {}", code),
