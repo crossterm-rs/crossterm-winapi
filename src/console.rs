@@ -179,6 +179,7 @@ impl Console {
     }
 
     pub fn read_console_input(&self) -> Result<Vec<InputRecord>> {
+
         let buf_len = self.number_of_console_input_events()?;
 
         // Fast-skipping all the code below if there is nothing to read at all
