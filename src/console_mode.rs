@@ -4,13 +4,10 @@ use winapi::um::consoleapi::{GetConsoleMode, SetConsoleMode};
 
 use super::{is_true, Handle, HandleType};
 
-/// This abstracts away some WinaApi calls to set and get the console mode.
+/// A wrapper around a screen buffer, focusing on calls to get and set the console mode.
 ///
-/// Wraps the underlying function call: [SetConsoleMode]
-/// link: [https://docs.microsoft.com/en-us/windows/console/setconsolemode]
-///
-/// Wraps the underlying function call: [GetConsoleMode]
-/// link: [https://docs.microsoft.com/en-us/windows/console/getconsolemode]
+/// This wraps [`SetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/setconsolemode)
+/// and [`GetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/getconsolemode).
 #[derive(Debug, Clone)]
 pub struct ConsoleMode {
     // the handle used for the functions of this type.
@@ -20,7 +17,7 @@ pub struct ConsoleMode {
 impl ConsoleMode {
     /// Create a new `ConsoleMode` instance.
     ///
-    /// This will use the `STD_OUTPUT_HANDLE` as default handle.
+    /// This will use the standard output as its handle.
     /// When you explicitly want to specify the handle used for the function calls use `ConsoleMode::from(handle)` instead.
     pub fn new() -> Result<ConsoleMode> {
         Ok(ConsoleMode {
@@ -32,8 +29,8 @@ impl ConsoleMode {
     ///
     /// This function sets the `dwMode`.
     ///
-    /// Wraps the underlying function call: [SetConsoleMode]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsolemode]
+    /// This wraps
+    /// [`SetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/setconsolemode).
     pub fn set_mode(&self, console_mode: u32) -> Result<()> {
         unsafe {
             if !is_true(SetConsoleMode(*self.handle, console_mode)) {
@@ -47,8 +44,8 @@ impl ConsoleMode {
     ///
     /// This function returns the `lpMode`.
     ///
-    /// Wraps the underlying function call: [GetConsoleMode]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/getconsolemode]
+    /// This wraps
+    /// [`GetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/getconsolemode).
     pub fn mode(&self) -> Result<u32> {
         let mut console_mode = 0;
         unsafe {

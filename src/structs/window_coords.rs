@@ -1,17 +1,19 @@
 //! This module provides a type that represents some rectangle.
-//! For example, in WinAPi we have `SMALL_RECT` to represent a window size but this is a little inconvenient.
-//! This module provides some trait implementations who will make parsing and working whit `COORD` easier.
+//! For example, in WinAPI we have `SMALL_RECT` to represent a window size but this is a little inconvenient.
+//! This module provides some trait implementations who will make parsing and working with `SMALL_RECT` easier.
 
 use winapi::um::wincon::{CONSOLE_SCREEN_BUFFER_INFO, SMALL_RECT};
 
 /// This is a wrapper for the locations of a rectangle.
-///
-/// It has left, right, bottom, top attributes.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
 pub struct WindowPositions {
+    /// The rectangle's offset from the left.
     pub left: i16,
+    /// The rectangle's offset from the right.
     pub right: i16,
+    /// The rectangle's offset from the bottom.
     pub bottom: i16,
+    /// The rectangle's offset from the top.
     pub top: i16,
 }
 
