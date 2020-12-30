@@ -18,17 +18,19 @@ use winapi::{
 
 use super::{is_true, Handle, HandleType, ScreenBufferInfo};
 
+/// A wrapper around a screen buffer.
 #[derive(Clone, Debug)]
 pub struct ScreenBuffer {
     handle: Handle,
 }
 
 impl ScreenBuffer {
+    /// Create a wrapper around a screen buffer from its handle.
     pub fn new(handle: Handle) -> Self {
         Self { handle }
     }
 
-    /// Create an instance of `ScreenBuffer` where the `HANDLE`, used for the functions this type wraps, is the current output handle.
+    /// Get the current console screen buffer
     pub fn current() -> Result<ScreenBuffer> {
         Ok(ScreenBuffer {
             handle: Handle::new(HandleType::CurrentOutputHandle)?,
@@ -37,8 +39,8 @@ impl ScreenBuffer {
 
     /// Create new console screen buffer.
     ///
-    /// Wraps the underlying function call: [CreateConsoleScreenBuffer]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/createconsolescreenbuffer]
+    /// This wraps
+    /// [`CreateConsoleScreenBuffer`](https://docs.microsoft.com/en-us/windows/console/createconsolescreenbuffer)
     pub fn create() -> ScreenBuffer {
         let mut security_attr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES {
             nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
@@ -61,10 +63,10 @@ impl ScreenBuffer {
         }
     }
 
-    /// This will make this `ScreenBuffer` the active one.
+    /// Set this screen buffer to the current one.
     ///
-    /// Wraps the underlying function call: [SetConsoleActiveScreenBuffer]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsoleactivescreenbuffer]
+    /// This wraps
+    /// [`SetConsoleActiveScreenBuffer`](https://docs.microsoft.com/en-us/windows/console/setconsoleactivescreenbuffer).
     pub fn show(&self) -> Result<()> {
         unsafe {
             if !is_true(SetConsoleActiveScreenBuffer(*self.handle)) {
@@ -76,8 +78,8 @@ impl ScreenBuffer {
 
     /// Get the screen buffer information like terminal size, cursor position, buffer size.
     ///
-    /// Wraps the underlying function call: [GetConsoleScreenBufferInfo]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo]
+    /// This wraps
+    /// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
     pub fn info(&self) -> Result<ScreenBufferInfo> {
         let mut csbi = ScreenBufferInfo::new();
 
@@ -92,8 +94,8 @@ impl ScreenBuffer {
 
     /// Set the console screen buffer size to the given size.
     ///
-    /// Wraps the underlying function call: [SetConsoleScreenBufferSize]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsolescreenbuffersize]
+    /// This wraps
+    /// [`SetConsoleScreenBufferSize`](https://docs.microsoft.com/en-us/windows/console/setconsolescreenbuffersize).
     pub fn set_size(&self, x: i16, y: i16) -> Result<()> {
         unsafe {
             if !is_true(SetConsoleScreenBufferSize(
@@ -106,7 +108,7 @@ impl ScreenBuffer {
         Ok(())
     }
 
-    /// Get the underlining raw `HANDLE` used by this type to execute whit.
+    /// Get the underlying raw `HANDLE` used by this type to execute with.
     pub fn handle(&self) -> &Handle {
         return &self.handle;
     }

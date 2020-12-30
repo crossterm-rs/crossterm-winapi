@@ -13,7 +13,7 @@ fn main() -> Result<()> {
     let curr_out_put_handle = Handle::new(HandleType::CurrentOutputHandle)?;
     let curr_out_put_handle = Handle::new(HandleType::CurrentInputHandle)?;
 
-    // now you have this handle you might want to get the WinApi `HANDLE` it is wrapping.
+    // now you have this handle you might want to get the WinAPI `HANDLE` it is wrapping.
     // you can do this by defencing.
 
     let handle /*:HANDLE*/ = *out_put_handle;

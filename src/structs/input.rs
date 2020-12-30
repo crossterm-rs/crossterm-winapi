@@ -20,12 +20,11 @@ use winapi::um::wincon::{
 use super::Coord;
 use crate::ScreenBuffer;
 
-/// Describes a keyboard input event in a console INPUT_RECORD structure.
-/// link: [https://docs.microsoft.com/en-us/windows/console/key-event-record-str]
+/// A [keyboard input event](https://docs.microsoft.com/en-us/windows/console/key-event-record-str).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct KeyEventRecord {
-    /// If the key is pressed, this member is TRUE. Otherwise, this member is
-    /// FALSE (the key is released).
+    /// If the key is pressed, this member is true. Otherwise, this member is
+    /// false (the key is released).
     pub key_down: bool,
     /// The repeat count, which indicates that a key is being held down.
     /// For example, when a key is held down, you might get five events with
@@ -45,8 +44,8 @@ pub struct KeyEventRecord {
 }
 
 impl KeyEventRecord {
-    /// Convert a KEY_EVENT_RECORD to KeyEventRecord. This function is private
-    /// because the KEY_EVENT_RECORD has several union fields for characters
+    /// Convert a `KEY_EVENT_RECORD` to KeyEventRecord. This function is private
+    /// because the `KEY_EVENT_RECORD` has several union fields for characters
     /// (u8 vs u16) that we always interpret as u16. We always use the wide
     /// versions of windows API calls to support this.
     #[inline]
@@ -62,11 +61,16 @@ impl KeyEventRecord {
     }
 }
 
+/// A [mouse input event](https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str).
 #[derive(PartialEq, Debug, Copy, Clone, Eq)]
 pub struct MouseEvent {
+    /// The position of the mouse when the event occurred in cell coordinates.
     pub mouse_position: Coord,
+    /// The state of the mouse's buttons.
     pub button_state: ButtonState,
+    /// The state of the control keys.
     pub control_key_state: ControlKeyState,
+    /// What type of mouse event it is.
     pub event_flags: EventFlags,
 }
 
@@ -90,21 +94,26 @@ impl From<MOUSE_EVENT_RECORD> for MouseEvent {
 /// A bit is 1 if the button was pressed.
 ///
 /// The state can be one of the following:
+///
+/// ```
+/// # enum __ {
 /// Release = 0x0000,
-/// // The leftmost mouse button.
+/// /// The leftmost mouse button.
 /// FromLeft1stButtonPressed = 0x0001,
-/// // The second button from the left.
+/// /// The second button from the left.
 /// FromLeft2ndButtonPressed = 0x0004,
-/// // The third button from the left.
+/// /// The third button from the left.
 /// FromLeft3rdButtonPressed = 0x0008,
-/// // The fourth button from the left.
+/// /// The fourth button from the left.
 /// FromLeft4thButtonPressed = 0x0010,
-/// // The rightmost mouse button.
+/// /// The rightmost mouse button.
 /// RightmostButtonPressed = 0x0002,
-/// // This button state is not recognized.
+/// /// This button state is not recognized.
 /// Unknown = 0x0021,
-/// // The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
+/// /// The wheel was rotated backward, toward the user; this will only be activated for `MOUSE_WHEELED ` from `dwEventFlags`
 /// Negative = 0x0020,
+/// # }
+/// ```
 ///
 /// [Ms Docs](https://docs.microsoft.com/en-us/windows/console/mouse-event-record-str#members)
 #[derive(PartialEq, Debug, Copy, Clone, Eq)]
@@ -121,6 +130,7 @@ impl From<DWORD> for ButtonState {
 }
 
 impl ButtonState {
+    /// Whether no buttons are being pressed.
     pub fn release_button(&self) -> bool {
         self.state == 0
     }
@@ -160,10 +170,26 @@ impl ButtonState {
     }
 }
 
+/// The state of the control keys.
+///
+/// This is a bitmask of the following values.
+///
+/// | Description | Value |
+/// | --- | --- |
+/// | The right alt key is pressed | `0x0001` |
+/// | The left alt key is pressed | `x0002` |
+/// | The right control key is pressed | `0x0004` |
+/// | The left control key is pressed | `x0008` |
+/// | The shift key is pressed | `0x0010` |
+/// | The num lock light is on | `0x0020` |
+/// | The scroll lock light is on | `0x0040` |
+/// | The caps lock light is on | `0x0080` |
+/// | The key is [enhanced](https://docs.microsoft.com/en-us/windows/console/key-event-record-str#remarks) | `0x0100` |
 #[derive(PartialEq, Debug, Copy, Clone, Eq)]
 pub struct ControlKeyState(u32);
 
 impl ControlKeyState {
+    /// Whether the control key has a state.
     pub fn has_state(&self, state: u32) -> bool {
         (state & self.0) != 0
     }
@@ -177,15 +203,15 @@ impl ControlKeyState {
 #[derive(PartialEq, Debug, Copy, Clone, Eq)]
 pub enum EventFlags {
     PressOrRelease = 0x0000,
-    // The second click (button press) of a double-click occurred. The first click is returned as a regular button-press event.
+    /// The second click (button press) of a double-click occurred. The first click is returned as a regular button-press event.
     DoubleClick = 0x0002,
-    // The horizontal mouse wheel was moved.
+    /// The horizontal mouse wheel was moved.
     MouseHwheeled = 0x0008,
-    // If the high word of the dwButtonState member contains a positive value, the wheel was rotated to the right. Otherwise, the wheel was rotated to the left.
+    /// If the high word of the dwButtonState member contains a positive value, the wheel was rotated to the right. Otherwise, the wheel was rotated to the left.
     MouseMoved = 0x0001,
-    // A change in mouse position occurred.
-    // The vertical mouse wheel was moved, if the high word of the dwButtonState member contains a positive value, the wheel was rotated forward, away from the user.
-    // Otherwise, the wheel was rotated backward, toward the user.
+    /// A change in mouse position occurred.
+    /// The vertical mouse wheel was moved, if the high word of the dwButtonState member contains a positive value, the wheel was rotated forward, away from the user.
+    /// Otherwise, the wheel was rotated backward, toward the user.
     MouseWheeled = 0x0004,
 }
 
@@ -203,6 +229,8 @@ impl From<DWORD> for EventFlags {
     }
 }
 
+/// The [size of console screen
+/// buffer](https://docs.microsoft.com/en-us/windows/console/window-buffer-size-record-str).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WindowBufferSizeRecord {
     pub size: Coord,
@@ -217,8 +245,11 @@ impl From<WINDOW_BUFFER_SIZE_RECORD> for WindowBufferSizeRecord {
     }
 }
 
+/// A [focus event](https://docs.microsoft.com/en-us/windows/console/focus-event-record-str). This
+/// is used only internally by Windows and should be ignored.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct FocusEventRecord {
+    /// Reserved; do not use.
     pub set_focus: bool,
 }
 
@@ -231,8 +262,11 @@ impl From<FOCUS_EVENT_RECORD> for FocusEventRecord {
     }
 }
 
+/// A [menu event](https://docs.microsoft.com/en-us/windows/console/menu-event-record-str). This is
+/// used only internally by Windows and should be ignored.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MenuEventRecord {
+    /// Reserved; do not use.
     pub command_id: u32,
 }
 
@@ -245,28 +279,22 @@ impl From<MENU_EVENT_RECORD> for MenuEventRecord {
     }
 }
 
-/// Describes an input event in the console input buffer.
+/// An [input event](https://docs.microsoft.com/en-us/windows/console/input-record-str).
+///
 /// These records can be read from the input buffer by using the `ReadConsoleInput`
 /// or `PeekConsoleInput` function, or written to the input buffer by using the
 /// `WriteConsoleInput` function.
-///
-/// [Ms Docs](https://docs.microsoft.com/en-us/windows/console/input-record-str)
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum InputRecord {
-    /// The Event member contains a `KEY_EVENT_RECORD` structure with
-    /// information about a keyboard event.
+    /// A keyboard event occurred.
     KeyEvent(KeyEventRecord),
-    /// The Event member contains a `MOUSE_EVENT_RECORD` structure with
-    /// information about a mouse movement or button press event.
+    /// The mouse was moved or a mouse button was pressed.
     MouseEvent(MouseEvent),
-    /// The Event member contains a `WINDOW_BUFFER_SIZE_RECORD` structure with
-    /// information about the new size of the console screen buffer.
+    /// A console screen buffer was resized.
     WindowBufferSizeEvent(WindowBufferSizeRecord),
-    /// The Event member contains a `FOCUS_EVENT_RECORD` structure. These
-    /// events are used internally and should be ignored.
+    /// A focus event occured. This is used only internally by Windows and should be ignored.
     FocusEvent(FocusEventRecord),
-    /// The Event member contains a `MENU_EVENT_RECORD` structure. These
-    /// events are used internally and should be ignored.
+    /// A menu event occurred. This is used only internally by Windows and should be ignored.
     MenuEvent(MenuEventRecord),
 }
 
