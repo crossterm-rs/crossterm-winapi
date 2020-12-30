@@ -130,7 +130,7 @@ impl From<DWORD> for ButtonState {
 }
 
 impl ButtonState {
-    /// Whether no buttons are being pressed.
+    /// Get whether no buttons are being pressed.
     pub fn release_button(&self) -> bool {
         self.state == 0
     }
