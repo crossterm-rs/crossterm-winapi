@@ -1,4 +1,4 @@
-use std::io::{self, Error, Result};
+use std::io::{self, Result};
 use std::iter;
 use std::slice;
 use std::str;
@@ -12,7 +12,7 @@ use winapi::um::wincon::{
     SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, INPUT_RECORD, SMALL_RECT,
 };
 
-use super::{is_true, Coord, Handle, HandleType, InputRecord, WindowPositions};
+use super::{result, Coord, Handle, HandleType, InputRecord, WindowPositions};
 
 /// A wrapper around a screen buffer.
 #[derive(Debug, Clone)]
@@ -39,11 +39,7 @@ impl Console {
     /// This wraps
     /// [`SetConsoleTextAttribute`](https://docs.microsoft.com/en-us/windows/console/setconsoletextattribute).
     pub fn set_text_attribute(&self, value: u16) -> Result<()> {
-        unsafe {
-            if !is_true(SetConsoleTextAttribute(*self.handle, value)) {
-                return Err(Error::last_os_error());
-            }
-        }
+        result(unsafe { SetConsoleTextAttribute(*self.handle, value) })?;
         Ok(())
     }
 
@@ -58,11 +54,7 @@ impl Console {
         };
         let a = SMALL_RECT::from(rect);
 
-        unsafe {
-            if !is_true(SetConsoleWindowInfo(*self.handle, absolute, &a)) {
-                return Err(Error::last_os_error());
-            }
-        }
+        result(unsafe { SetConsoleWindowInfo(*self.handle, absolute, &a) })?;
 
         Ok(())
     }
@@ -79,20 +71,18 @@ impl Console {
         filling_char: char,
     ) -> Result<u32> {
         let mut chars_written = 0;
-        unsafe {
+        result(unsafe {
             // fill the cells in console with blanks
-            if !is_true(FillConsoleOutputCharacterA(
+            FillConsoleOutputCharacterA(
                 *self.handle,
                 filling_char as i8,
                 cells_to_write,
                 COORD::from(start_location),
                 &mut chars_written,
-            )) {
-                return Err(Error::last_os_error());
-            }
+            )
+        })?;
 
-            Ok(chars_written)
-        }
+        Ok(chars_written)
     }
 
     /// Sets the character attributes for a specified number of character cells, beginning at the specified coordinates in a screen buffer.
@@ -108,17 +98,15 @@ impl Console {
     ) -> Result<u32> {
         let mut cells_written = 0;
         // Get the position of the current console window
-        unsafe {
-            if !is_true(FillConsoleOutputAttribute(
+        result(unsafe {
+            FillConsoleOutputAttribute(
                 *self.handle,
                 dw_attribute,
                 cells_to_write,
                 COORD::from(start_location),
                 &mut cells_written,
-            )) {
-                return Err(Error::last_os_error());
-            }
-        }
+            )
+        })?;
 
         Ok(cells_written)
     }
@@ -126,8 +114,8 @@ impl Console {
     /// Retrieves the size of the largest possible console window, based on the current text and the size of the display.
     ///
     /// This wraps [`GetLargestConsoleWindowSize`](https://docs.microsoft.com/en-us/windows/console/getlargestconsolewindowsize)
-    pub fn largest_window_size(&self) -> Coord {
-        Coord::from(unsafe { GetLargestConsoleWindowSize(*self.handle) })
+    pub fn largest_window_size(&self) -> Result<Coord> {
+        crate::coord_result(unsafe { GetLargestConsoleWindowSize(*self.handle) })
     }
 
     /// Writes a character string to a console screen buffer beginning at the current cursor location.
@@ -150,18 +138,17 @@ impl Console {
         let utf16_ptr: *const c_void = utf16.as_ptr() as *const _ as *const c_void;
 
         let mut cells_written: u32 = 0;
-        // write to console
-        unsafe {
-            if !is_true(WriteConsoleW(
+
+        result(unsafe {
+            WriteConsoleW(
                 *self.handle,
                 utf16_ptr,
                 utf16.len() as u32,
                 &mut cells_written,
                 NULL,
-            )) {
-                return Err(io::Error::last_os_error());
-            }
-        }
+            )
+        })?;
+
         Ok(utf8.as_bytes().len())
     }
 
@@ -216,11 +203,8 @@ impl Console {
     /// [`GetNumberOfConsoleInputEvents`](https://docs.microsoft.com/en-us/windows/console/getnumberofconsoleinputevents).
     pub fn number_of_console_input_events(&self) -> Result<u32> {
         let mut buf_len: DWORD = 0;
-        if is_true(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) }) {
-            Ok(buf_len)
-        } else {
-            Err(Error::last_os_error())
-        }
+        result(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) })?;
+        Ok(buf_len)
     }
 
     /// Read input (via ReadConsoleInputW) into buf and return the number
@@ -231,18 +215,16 @@ impl Console {
         let mut num_records = 0;
         debug_assert!(buf.len() < std::u32::MAX as usize);
 
-        if !is_true(unsafe {
+        result(unsafe {
             ReadConsoleInputW(
                 *self.handle,
                 buf.as_mut_ptr(),
                 buf.len() as u32,
                 &mut num_records,
             )
-        }) {
-            Err(Error::last_os_error())
-        } else {
-            Ok(num_records as usize)
-        }
+        })?;
+
+        Ok(num_records as usize)
     }
 }
 

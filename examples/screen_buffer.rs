@@ -24,7 +24,7 @@ fn print_screen_buffer_information() -> Result<()> {
 #[cfg(windows)]
 fn multiple_screen_buffers() -> Result<()> {
     // create new screen buffer
-    let screen_buffer = ScreenBuffer::create();
+    let screen_buffer = ScreenBuffer::create()?;
 
     // which to this screen buffer
     screen_buffer.show()

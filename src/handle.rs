@@ -1,6 +1,6 @@
 //! This module contains some logic for working with the console handle.
 
-use std::io::{self, Result};
+use std::io::Result;
 use std::ops::Deref;
 use std::ptr::null_mut;
 use std::sync::Arc;
@@ -13,6 +13,8 @@ use winapi::um::{
     winbase::{STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
     winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE, HANDLE},
 };
+
+use super::handle_result;
 
 /// The standard handles of a process.
 ///
@@ -115,7 +117,7 @@ impl Handle {
         let utf16: Vec<u16> = "CONOUT$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
 
-        let handle = unsafe {
+        let handle = handle_result(unsafe {
             CreateFileW(
                 utf16_ptr,
                 GENERIC_READ | GENERIC_WRITE,
@@ -125,11 +127,7 @@ impl Handle {
                 0,
                 null_mut(),
             )
-        };
-
-        if !Self::is_valid_handle(&handle) {
-            return Err(io::Error::last_os_error());
-        }
+        })?;
 
         Ok(Handle {
             handle: Arc::new(Inner::new_exclusive(handle)),
@@ -146,7 +144,7 @@ impl Handle {
         let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
 
-        let handle = unsafe {
+        let handle = handle_result(unsafe {
             CreateFileW(
                 utf16_ptr,
                 GENERIC_READ | GENERIC_WRITE,
@@ -156,11 +154,7 @@ impl Handle {
                 0,
                 null_mut(),
             )
-        };
-
-        if !Handle::is_valid_handle(&handle) {
-            return Err(io::Error::last_os_error());
-        }
+        })?;
 
         Ok(Handle {
             handle: Arc::new(Inner::new_exclusive(handle)),
@@ -188,26 +182,18 @@ impl Handle {
     }
 
     fn std_handle(which_std: DWORD) -> Result<Handle> {
-        let handle = unsafe { GetStdHandle(which_std) };
+        let handle = handle_result(unsafe { GetStdHandle(which_std) })?;
 
-        if !Handle::is_valid_handle(&handle) {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(Handle {
-                handle: Arc::new(Inner::new_shared(handle)),
-            })
-        }
+        Ok(Handle {
+            handle: Arc::new(Inner::new_shared(handle)),
+        })
     }
 
     /// Checks if the console handle is an invalid handle value.
     ///
     /// This is done by checking if the passed `HANDLE` is equal to `INVALID_HANDLE_VALUE`.
     pub fn is_valid_handle(handle: &HANDLE) -> bool {
-        if *handle == INVALID_HANDLE_VALUE {
-            false
-        } else {
-            true
-        }
+        *handle != INVALID_HANDLE_VALUE
     }
 }
 
