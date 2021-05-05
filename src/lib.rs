@@ -23,7 +23,7 @@ mod semaphore;
 mod structs;
 
 /// Parses the given integer to an bool by checking if the value is 0 or 1.
-/// This is currently used for checking if a WinApi called succeeded, this might be moved into a macro at some time.
+/// This is currently used for checking if a WinAPI called succeeded, this might be moved into a macro at some time.
 /// So please don't use this :(.
 #[inline(always)]
 pub fn is_true(value: i32) -> bool {

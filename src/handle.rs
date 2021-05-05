@@ -14,20 +14,19 @@ use winapi::um::{
     winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE, HANDLE},
 };
 
-/// This enum represents the different handles that could be requested.
+/// The standard handles of a process.
 ///
-/// Some more details could be found [here](https://docs.microsoft.com/en-us/windows/console/getstdhandle#parameters)
+/// See [the Windows documentation on console
+/// handles](https://docs.microsoft.com/en-us/windows/console/console-handles) for more info.
 #[derive(Debug, Clone, Copy)]
 pub enum HandleType {
-    /// This represents the `STD_OUTPUT_HANDLE`
+    /// The process' standard output.
     OutputHandle,
-    /// This represents the `STD_INPUT_HANDLE`
+    /// The process' standard input.
     InputHandle,
-    /// This represents the `CONOUT$` file handle
-    /// When using multiple screen buffers this will always point to the to the current screen output buffer.
+    /// The process' active console screen buffer, `CONOUT$`.
     CurrentOutputHandle,
-    /// This represents the `CONIN$` file handle.
-    /// When using multiple screen buffers this will always point to the to the current screen input buffer.
+    /// The process' console input buffer, `CONIN$`.
     CurrentInputHandle,
 }
 
@@ -74,15 +73,16 @@ unsafe impl Send for Inner {}
 
 unsafe impl Sync for Inner {}
 
-/// This abstracts away some WinaApi calls to set and get some console handles.
+/// This abstracts away some WinAPI calls to set and get some console handles.
 ///
-// Wraps the underlying WinApi type: [HANDLE]
+/// It wraps WinAPI's [`HANDLE`] type.
 #[derive(Debug, Clone)]
 pub struct Handle {
     handle: Arc<Inner>,
 }
 
 impl Handle {
+    /// Create a new handle of a certaint type.
     pub fn new(handle: HandleType) -> Result<Handle> {
         match handle {
             HandleType::OutputHandle => Handle::output_handle(),
@@ -107,12 +107,10 @@ impl Handle {
     /// Get the handle of the active screen buffer.
     /// When using multiple screen buffers this will always point to the to the current screen output buffer.
     ///
-    /// On success this function returns the `HANDLE` to `STD_OUTPUT_HANDLE`.
-    ///
     /// This function uses `CONOUT$` to create a file handle to the current output buffer.
     ///
-    /// Wraps the underlying function call: [CreateFileW]
-    /// link: [https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilew]
+    /// This wraps
+    /// [`CreateFileW`](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
     pub fn current_out_handle() -> Result<Handle> {
         let utf16: Vec<u16> = "CONOUT$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
@@ -138,15 +136,12 @@ impl Handle {
         })
     }
 
-    /// Get the handle of the active input screen buffer.
-    /// When using multiple screen buffers this will always point to the to the current screen input buffer.
-    ///
-    /// On success this function returns the `HANDLE` to `STD_INPUT_HANDLE`.
+    /// Get the handle of the console input buffer.
     ///
     /// This function uses `CONIN$` to create a file handle to the current input buffer.
     ///
-    /// Wraps the underlying function call: [CreateFileW]
-    /// link: [https://docs.microsoft.com/en-us/windows/desktop/api/fileapi/nf-fileapi-createfilew]
+    /// This wraps
+    /// [`CreateFileW`](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
     pub fn current_in_handle() -> Result<Handle> {
         let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
         let utf16_ptr: *const u16 = utf16.as_ptr();
@@ -172,12 +167,12 @@ impl Handle {
         })
     }
 
-    /// Get the handle of the output screen buffer.
+    /// Get the handle of the standard output.
     ///
     /// On success this function returns the `HANDLE` to `STD_OUTPUT_HANDLE`.
     ///
-    /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_OUTPUT_HANDLE`
-    /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
+    /// This wraps [`GetStdHandle`](https://docs.microsoft.com/en-us/windows/console/getstdhandle)
+    /// called with `STD_OUTPUT_HANDLE`.
     pub fn output_handle() -> Result<Handle> {
         Self::std_handle(STD_OUTPUT_HANDLE)
     }
@@ -186,8 +181,8 @@ impl Handle {
     ///
     /// On success this function returns the `HANDLE` to `STD_INPUT_HANDLE`.
     ///
-    /// Wraps the underlying function call: [GetStdHandle] whit argument `STD_INPUT_HANDLE`
-    /// link: [https://docs.microsoft.com/en-us/windows/console/getstdhandle]
+    /// This wraps [`GetStdHandle`](https://docs.microsoft.com/en-us/windows/console/getstdhandle)
+    /// called with `STD_INPUT_HANDLE`.
     pub fn input_handle() -> Result<Handle> {
         Self::std_handle(STD_INPUT_HANDLE)
     }
@@ -206,7 +201,7 @@ impl Handle {
 
     /// Checks if the console handle is an invalid handle value.
     ///
-    /// This is done by checking if the passed `HANDLE` is equal to `INVALID_HANDLE_VALUE`
+    /// This is done by checking if the passed `HANDLE` is equal to `INVALID_HANDLE_VALUE`.
     pub fn is_valid_handle(handle: &HANDLE) -> bool {
         if *handle == INVALID_HANDLE_VALUE {
             false

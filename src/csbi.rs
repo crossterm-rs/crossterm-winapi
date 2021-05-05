@@ -5,10 +5,10 @@ use winapi::um::wincon::CONSOLE_SCREEN_BUFFER_INFO;
 
 use super::{Coord, Size, WindowPositions};
 
-/// This type is a wrapper for `CONSOLE_SCREEN_BUFFER_INFO` and has some methods to extract information from it.
+/// Information about a console screen buffer.
 ///
-/// Wraps the underlying type: [CONSOLE_SCREEN_BUFFER_INFO]
-/// link: [https://docs.microsoft.com/en-us/windows/console/console-screen-buffer-info-str]
+/// This wraps
+/// [`CONSOLE_SCREEN_BUFFER_INFO`](https://docs.microsoft.com/en-us/windows/console/console-screen-buffer-info-str).
 // TODO: replace the innards of this type with our own, more friendly types, like Coord.
 // This will obviously be a breaking change.
 #[derive(Clone)]
@@ -31,20 +31,21 @@ impl fmt::Debug for ScreenBufferInfo {
 }
 
 impl ScreenBufferInfo {
+    /// Create a new console screen buffer without all zeroed properties.
     pub fn new() -> ScreenBufferInfo {
         ScreenBufferInfo(unsafe { zeroed() })
     }
 
-    /// This will return the buffer size.
+    /// Get the size of the screen buffer.
     ///
-    /// Will take `dwSize` from the current screen buffer and convert it into the `Size`.
+    /// Will take `dwSize` from the current screen buffer and convert it into a [`Size`].
     pub fn buffer_size(&self) -> Size {
         Size::from(self.0.dwSize)
     }
 
-    /// This will return the terminal size.
+    /// Get the size of the terminal display window.
     ///
-    /// Will calculate the width and height from `srWindow` and convert it into a `Size`.
+    /// Will calculate the width and height from `srWindow` and convert it into a [`Size`].
     pub fn terminal_size(&self) -> Size {
         (Size::new(
             self.0.srWindow.Right - self.0.srWindow.Left,
@@ -52,21 +53,21 @@ impl ScreenBufferInfo {
         ))
     }
 
-    /// This will return the terminal window properties.
+    /// Get the position and size of the terminal display window.
     ///
     /// Will take `srWindow` and convert it into the `WindowPositions` type.
     pub fn terminal_window(&self) -> WindowPositions {
         WindowPositions::from(self.0)
     }
 
-    /// This will return the terminal window properties.
+    /// Get the current attributes of the characters that are being written to the console.
     ///
     /// Will take `wAttributes` from the current screen buffer.
     pub fn attributes(&self) -> u16 {
         self.0.wAttributes
     }
 
-    /// This will return the current cursor position.
+    /// Get the current column and row of the terminal cursor in the screen buffer.
     ///
     /// Will take `dwCursorPosition` from the current screen buffer.
     pub fn cursor_pos(&self) -> Coord {

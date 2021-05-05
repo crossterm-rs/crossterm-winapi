@@ -2,11 +2,15 @@ use crate::Handle;
 use std::{io, ptr};
 use winapi::um::synchapi::{CreateSemaphoreW, ReleaseSemaphore};
 
+/// A [Windows semaphore](https://docs.microsoft.com/en-us/windows/win32/sync/semaphore-objects).
 #[derive(Clone, Debug)]
 pub struct Semaphore(Handle);
 
 impl Semaphore {
     /// Construct a new semaphore.
+    ///
+    /// This wraps
+    /// [`CreateSemaphoreW`](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createsemaphorew).
     pub fn new() -> io::Result<Self> {
         let handle = unsafe { CreateSemaphoreW(ptr::null_mut(), 0, 1, ptr::null_mut()) };
 
@@ -19,6 +23,9 @@ impl Semaphore {
     }
 
     /// Release a permit on the semaphore.
+    ///
+    /// This wraps
+    /// [`ReleaseSemaphore`](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-releasesemaphore).
     pub fn release(&self) -> io::Result<()> {
         let result = unsafe { ReleaseSemaphore(*self.0, 1, ptr::null_mut()) };
 

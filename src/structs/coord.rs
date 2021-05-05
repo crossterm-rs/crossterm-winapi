@@ -1,6 +1,6 @@
 //! This module provides a type that represents some location/coordination.
-//! For example, in WinAPi we have `COORD` which looks and feels inconvenient.
-//! This module provides also some trait implementations who will make parsing and working whit `COORD` easier.
+//! For example, in WinAPI we have `COORD` which looks and feels inconvenient.
+//! This module provides also some trait implementations who will make parsing and working with `COORD` easier.
 
 use winapi::um::wincon::COORD;
 
@@ -14,7 +14,7 @@ pub struct Coord {
 }
 
 impl Coord {
-    /// Create a new size instance by passing in the width and height.
+    /// Create a new coordinate from its x and y position.
     pub fn new(x: i16, y: i16) -> Coord {
         Coord { x, y }
     }

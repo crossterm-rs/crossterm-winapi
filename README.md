@@ -12,10 +12,10 @@ API could be expected.
 
 This crate provides some abstractions over reading input, console screen buffer, and handle.
 
-The following WinApi calls:
+The following WinAPI calls:
 
 - CONSOLE_SCREEN_BUFFER_INFO (used to extract information like cursor pos, terminal size etc.)
-- HANDLE (the handle needed to run functions from WinApi)
+- HANDLE (the handle needed to run functions from WinAPI)
 - SetConsoleActiveScreenBuffer (activate an other screen buffer)
 - Set/GetConsoleMode (e.g. console modes like disabling output)
 - SetConsoleTextAttribute (eg. coloring)

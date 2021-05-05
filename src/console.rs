@@ -14,7 +14,7 @@ use winapi::um::wincon::{
 
 use super::{is_true, Coord, Handle, HandleType, InputRecord, WindowPositions};
 
-/// Could be used to do some basic things with the console.
+/// A wrapper around a screen buffer.
 #[derive(Debug, Clone)]
 pub struct Console {
     handle: Handle,
@@ -30,12 +30,14 @@ impl Console {
         })
     }
 
-    /// Sets the attributes of characters written to the console screen buffer by the WriteFile or WriteConsole function, or echoed by the ReadFile or ReadConsole function.
+    /// Sets the attributes of characters written to the console screen buffer by the `WriteFile` or `WriteConsole` functions, or echoed by the `ReadFile` or `ReadConsole` functions.
     /// This function affects text written after the function call.
     ///
-    /// parameter: [wAttributes]
-    /// Wraps the underlying function call: [SetConsoleTextAttribute]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsoletextattribute]
+    /// The attributes is a bitmask of possible [character
+    /// attributes](https://docs.microsoft.com/en-us/windows/console/console-screen-buffers#character-attributes).
+    ///
+    /// This wraps
+    /// [`SetConsoleTextAttribute`](https://docs.microsoft.com/en-us/windows/console/setconsoletextattribute).
     pub fn set_text_attribute(&self, value: u16) -> Result<()> {
         unsafe {
             if !is_true(SetConsoleTextAttribute(*self.handle, value)) {
@@ -47,8 +49,8 @@ impl Console {
 
     /// Sets the current size and position of a console screen buffer's window.
     ///
-    /// Wraps the underlying function call: [SetConsoleTextAttribute]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/setconsoletextattribute]
+    /// This wraps
+    /// [`SetConsoleWindowInfo`](https://docs.microsoft.com/en-us/windows/console/setconsolewindowinfo).
     pub fn set_console_info(&self, absolute: bool, rect: WindowPositions) -> Result<()> {
         let absolute = match absolute {
             true => 1,
@@ -65,10 +67,11 @@ impl Console {
         Ok(())
     }
 
-    /// Writes a character to the console screen buffer a specified number of times, beginning at the specified coordinates
+    /// Writes a character to the console screen buffer a specified number of times, beginning at the specified coordinates.
+    /// Returns the number of characters that have been written.
     ///
-    /// Wraps the underlying function call: [FillConsoleOutputCharacterA]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/fillconsoleoutputcharacter]
+    /// This wraps
+    /// [`FillConsoleOutputCharacterA`](https://docs.microsoft.com/en-us/windows/console/fillconsoleoutputcharacter).
     pub fn fill_whit_character(
         &self,
         start_location: Coord,
@@ -93,9 +96,10 @@ impl Console {
     }
 
     /// Sets the character attributes for a specified number of character cells, beginning at the specified coordinates in a screen buffer.
+    /// Returns the number of cells that have been modified.
     ///
-    /// Wraps the underlying function call: [FillConsoleOutputAttribute]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/fillconsoleoutputattribute]
+    /// This wraps
+    /// [`FillConsoleOutputAttribute`](https://docs.microsoft.com/en-us/windows/console/fillconsoleoutputattribute).
     pub fn fill_whit_attribute(
         &self,
         start_location: Coord,
@@ -121,16 +125,15 @@ impl Console {
 
     /// Retrieves the size of the largest possible console window, based on the current text and the size of the display.
     ///
-    /// Wraps the underlying function call: [GetLargestConsoleWindowSize]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/getlargestconsolewindowsize]
+    /// This wraps [`GetLargestConsoleWindowSize`](https://docs.microsoft.com/en-us/windows/console/getlargestconsolewindowsize)
     pub fn largest_window_size(&self) -> Coord {
         Coord::from(unsafe { GetLargestConsoleWindowSize(*self.handle) })
     }
 
     /// Writes a character string to a console screen buffer beginning at the current cursor location.
     ///
-    /// Wraps the underlying function call: [WriteConsoleW]
-    /// link: [https://docs.microsoft.com/en-us/windows/console/writeconsole]
+    /// This wraps
+    /// [`WriteConsoleW`](https://docs.microsoft.com/en-us/windows/console/writeconsole).
     pub fn write_char_buffer(&self, buf: &[u8]) -> Result<usize> {
         // get string from u8[] and parse it to an c_str
         let utf8 = match str::from_utf8(buf) {
@@ -162,6 +165,10 @@ impl Console {
         Ok(utf8.as_bytes().len())
     }
 
+    /// Read one input event.
+    ///
+    /// This wraps
+    /// [`ReadConsoleInputW`](https://docs.microsoft.com/en-us/windows/console/readconsoleinput).
     pub fn read_single_input_event(&self) -> Result<InputRecord> {
         let mut record: INPUT_RECORD = INPUT_RECORD::default();
 
@@ -178,6 +185,10 @@ impl Console {
         Ok(record.into())
     }
 
+    /// Read all available input events without blocking.
+    ///
+    /// This wraps
+    /// [`ReadConsoleInputW`](https://docs.microsoft.com/en-us/windows/console/readconsoleinput).
     pub fn read_console_input(&self) -> Result<Vec<InputRecord>> {
         let buf_len = self.number_of_console_input_events()?;
 
@@ -199,6 +210,10 @@ impl Console {
             .collect())
     }
 
+    /// Get the number of available input events that can be read without blocking.
+    ///
+    /// This wraps
+    /// [`GetNumberOfConsoleInputEvents`](https://docs.microsoft.com/en-us/windows/console/getnumberofconsoleinputevents).
     pub fn number_of_console_input_events(&self) -> Result<u32> {
         let mut buf_len: DWORD = 0;
         if is_true(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) }) {

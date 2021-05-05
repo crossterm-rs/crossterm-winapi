@@ -1,6 +1,6 @@
 //! This module provides a type that represents some size.
-//! For example, in WinAPi we have `COORD` to represent screen/buffer size but this is a little inconvenient.
-//! This module provides some trait implementations who will make parsing and working whit `COORD` easier.
+//! For example, in WinAPI we have `COORD` to represent screen/buffer size but this is a little inconvenient.
+//! This module provides some trait implementations who will make parsing and working with `COORD` easier.
 
 use winapi::um::wincon::COORD;
 
