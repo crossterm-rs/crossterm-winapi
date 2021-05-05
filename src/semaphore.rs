@@ -1,6 +1,8 @@
-use crate::Handle;
 use std::{io, ptr};
+
 use winapi::um::synchapi::{CreateSemaphoreW, ReleaseSemaphore};
+
+use crate::{nonnull_handle_result, result, Handle};
 
 /// A [Windows semaphore](https://docs.microsoft.com/en-us/windows/win32/sync/semaphore-objects).
 #[derive(Clone, Debug)]
@@ -12,11 +14,9 @@ impl Semaphore {
     /// This wraps
     /// [`CreateSemaphoreW`](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createsemaphorew).
     pub fn new() -> io::Result<Self> {
-        let handle = unsafe { CreateSemaphoreW(ptr::null_mut(), 0, 1, ptr::null_mut()) };
-
-        if handle == ptr::null_mut() {
-            return Err(io::Error::last_os_error());
-        }
+        let handle = nonnull_handle_result(unsafe {
+            CreateSemaphoreW(ptr::null_mut(), 0, 1, ptr::null_mut())
+        })?;
 
         let handle = unsafe { Handle::from_raw(handle) };
         Ok(Self(handle))
@@ -27,13 +27,7 @@ impl Semaphore {
     /// This wraps
     /// [`ReleaseSemaphore`](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-releasesemaphore).
     pub fn release(&self) -> io::Result<()> {
-        let result = unsafe { ReleaseSemaphore(*self.0, 1, ptr::null_mut()) };
-
-        if result == 0 {
-            return Err(io::Error::last_os_error());
-        }
-
-        Ok(())
+        result(unsafe { ReleaseSemaphore(*self.0, 1, ptr::null_mut()) })
     }
 
     /// Access the underlying handle to the semaphore.

@@ -47,10 +47,10 @@ impl ScreenBufferInfo {
     ///
     /// Will calculate the width and height from `srWindow` and convert it into a [`Size`].
     pub fn terminal_size(&self) -> Size {
-        (Size::new(
+        Size::new(
             self.0.srWindow.Right - self.0.srWindow.Left,
             self.0.srWindow.Bottom - self.0.srWindow.Top,
-        ))
+        )
     }
 
     /// Get the position and size of the terminal display window.

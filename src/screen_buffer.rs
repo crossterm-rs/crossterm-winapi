@@ -1,6 +1,6 @@
 //! This contains the logic for working with the console buffer.
 
-use std::io::{Error, Result};
+use std::io::Result;
 use std::mem::size_of;
 
 use winapi::{
@@ -16,7 +16,7 @@ use winapi::{
     },
 };
 
-use super::{is_true, Handle, HandleType, ScreenBufferInfo};
+use super::{handle_result, result, Handle, HandleType, ScreenBufferInfo};
 
 /// A wrapper around a screen buffer.
 #[derive(Clone, Debug)]
@@ -41,26 +41,26 @@ impl ScreenBuffer {
     ///
     /// This wraps
     /// [`CreateConsoleScreenBuffer`](https://docs.microsoft.com/en-us/windows/console/createconsolescreenbuffer)
-    pub fn create() -> ScreenBuffer {
-        let mut security_attr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES {
+    pub fn create() -> Result<ScreenBuffer> {
+        let security_attr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES {
             nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
             lpSecurityDescriptor: NULL,
             bInheritHandle: TRUE,
         };
 
-        unsafe {
-            let new_screen_buffer = CreateConsoleScreenBuffer(
+        let new_screen_buffer = handle_result(unsafe {
+            CreateConsoleScreenBuffer(
                 GENERIC_READ |           // read/write access
                     GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE, // shared
-                &mut security_attr,                 // default security attributes
+                &security_attr,                     // default security attributes
                 CONSOLE_TEXTMODE_BUFFER,            // must be TEXTMODE
                 NULL,
-            );
-            ScreenBuffer {
-                handle: Handle::from_raw(new_screen_buffer),
-            }
-        }
+            )
+        })?;
+        Ok(ScreenBuffer {
+            handle: unsafe { Handle::from_raw(new_screen_buffer) },
+        })
     }
 
     /// Set this screen buffer to the current one.
@@ -68,12 +68,7 @@ impl ScreenBuffer {
     /// This wraps
     /// [`SetConsoleActiveScreenBuffer`](https://docs.microsoft.com/en-us/windows/console/setconsoleactivescreenbuffer).
     pub fn show(&self) -> Result<()> {
-        unsafe {
-            if !is_true(SetConsoleActiveScreenBuffer(*self.handle)) {
-                return Err(Error::last_os_error());
-            }
-        }
-        Ok(())
+        result(unsafe { SetConsoleActiveScreenBuffer(*self.handle) })
     }
 
     /// Get the screen buffer information like terminal size, cursor position, buffer size.
@@ -82,13 +77,7 @@ impl ScreenBuffer {
     /// [`GetConsoleScreenBufferInfo`](https://docs.microsoft.com/en-us/windows/console/getconsolescreenbufferinfo).
     pub fn info(&self) -> Result<ScreenBufferInfo> {
         let mut csbi = ScreenBufferInfo::new();
-
-        unsafe {
-            if !is_true(GetConsoleScreenBufferInfo(*self.handle, &mut csbi.0)) {
-                return Err(Error::last_os_error());
-            }
-        }
-
+        result(unsafe { GetConsoleScreenBufferInfo(*self.handle, &mut csbi.0) })?;
         Ok(csbi)
     }
 
@@ -97,20 +86,12 @@ impl ScreenBuffer {
     /// This wraps
     /// [`SetConsoleScreenBufferSize`](https://docs.microsoft.com/en-us/windows/console/setconsolescreenbuffersize).
     pub fn set_size(&self, x: i16, y: i16) -> Result<()> {
-        unsafe {
-            if !is_true(SetConsoleScreenBufferSize(
-                *self.handle,
-                COORD { X: x, Y: y },
-            )) {
-                return Err(Error::last_os_error());
-            }
-        }
-        Ok(())
+        result(unsafe { SetConsoleScreenBufferSize(*self.handle, COORD { X: x, Y: y }) })
     }
 
     /// Get the underlying raw `HANDLE` used by this type to execute with.
     pub fn handle(&self) -> &Handle {
-        return &self.handle;
+        &self.handle
     }
 }
 
