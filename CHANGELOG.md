@@ -1,3 +1,7 @@
+# Version 0.8.0
+- Changed some return types.
+- Improved some internal error handling. 
+
 # Version 0.7.0
 - Make resize event return correct screen dimensions instead of buffers size.
 
