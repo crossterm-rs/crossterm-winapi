@@ -220,6 +220,8 @@ impl From<DWORD> for EventFlags {
     fn from(event: DWORD) -> Self {
         match event {
             0x0000 => EventFlags::PressOrRelease,
+            //Only triggered using Windows Terminal while moving and clicking the mouse.
+            0x0003 => EventFlags::PressOrRelease,
             0x0002 => EventFlags::DoubleClick,
             0x0008 => EventFlags::MouseHwheeled,
             0x0001 => EventFlags::MouseMoved,
