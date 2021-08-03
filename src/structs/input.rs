@@ -213,6 +213,8 @@ pub enum EventFlags {
     /// The vertical mouse wheel was moved, if the high word of the dwButtonState member contains a positive value, the wheel was rotated forward, away from the user.
     /// Otherwise, the wheel was rotated backward, toward the user.
     MouseWheeled = 0x0004,
+    // This button state is not recognized.
+    Unknown = 0x0021,
 }
 
 // TODO: Replace with TryFrom.
@@ -220,13 +222,11 @@ impl From<DWORD> for EventFlags {
     fn from(event: DWORD) -> Self {
         match event {
             0x0000 => EventFlags::PressOrRelease,
-            //Only triggered using Windows Terminal while moving and clicking the mouse.
-            0x0003 => EventFlags::PressOrRelease,
             0x0002 => EventFlags::DoubleClick,
             0x0008 => EventFlags::MouseHwheeled,
             0x0001 => EventFlags::MouseMoved,
             0x0004 => EventFlags::MouseWheeled,
-            _ => panic!("Event flag {} does not exist.", event),
+            _ => EventFlags::Unknown,
         }
     }
 }
