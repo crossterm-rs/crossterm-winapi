@@ -1,3 +1,6 @@
+# Version 0.8.1
+- Fix panic on certain event flags. 
+
 # Version 0.8.0
 - Changed some return types.
 - Improved some internal error handling. 
