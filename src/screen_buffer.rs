@@ -3,18 +3,14 @@
 use std::io::Result;
 use std::mem::size_of;
 
-use winapi::{
-    shared::minwindef::TRUE,
-    shared::ntdef::NULL,
-    um::{
-        minwinbase::SECURITY_ATTRIBUTES,
-        wincon::{
-            CreateConsoleScreenBuffer, GetConsoleScreenBufferInfo, SetConsoleActiveScreenBuffer,
-            SetConsoleScreenBufferSize, CONSOLE_TEXTMODE_BUFFER, COORD,
-        },
-        winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE},
-    },
+use windows_sys::Win32::Security::SECURITY_ATTRIBUTES;
+use windows_sys::Win32::Storage::FileSystem::{FILE_SHARE_READ, FILE_SHARE_WRITE};
+use windows_sys::Win32::System::Console::{
+    CreateConsoleScreenBuffer, GetConsoleScreenBufferInfo, SetConsoleActiveScreenBuffer,
+    SetConsoleScreenBufferSize, CONSOLE_TEXTMODE_BUFFER, COORD,
 };
+use windows_sys::Win32::System::SystemServices::{GENERIC_READ, GENERIC_WRITE};
+pub const TRUE: ::windows_sys::Win32::Foundation::BOOL = 1;
 
 use super::{handle_result, result, Handle, HandleType, ScreenBufferInfo};
 
@@ -44,7 +40,7 @@ impl ScreenBuffer {
     pub fn create() -> Result<ScreenBuffer> {
         let security_attr: SECURITY_ATTRIBUTES = SECURITY_ATTRIBUTES {
             nLength: size_of::<SECURITY_ATTRIBUTES>() as u32,
-            lpSecurityDescriptor: NULL,
+            lpSecurityDescriptor: ::std::ptr::null_mut(),
             bInheritHandle: TRUE,
         };
 
@@ -55,8 +51,8 @@ impl ScreenBuffer {
                 FILE_SHARE_READ | FILE_SHARE_WRITE, // shared
                 &security_attr,                     // default security attributes
                 CONSOLE_TEXTMODE_BUFFER,            // must be TEXTMODE
-                NULL,
-            )
+                ::std::ptr::null_mut(),
+            ) as _
         })?;
         Ok(ScreenBuffer {
             handle: unsafe { Handle::from_raw(new_screen_buffer) },

@@ -3,10 +3,8 @@
 
 use std::io;
 
-use winapi::shared::minwindef::BOOL;
-use winapi::um::handleapi::INVALID_HANDLE_VALUE;
-use winapi::um::wincontypes::COORD;
-use winapi::um::winnt::HANDLE;
+use windows_sys::Win32::Foundation::{BOOL, HANDLE, INVALID_HANDLE_VALUE};
+use windows_sys::Win32::System::Console::COORD;
 
 pub use self::{
     console::Console,
@@ -63,7 +61,7 @@ pub fn handle_result(return_value: HANDLE) -> io::Result<HANDLE> {
 /// Get the result of a call to WinAPI that returns a handle or `NULL`.
 #[inline]
 pub fn nonnull_handle_result(return_value: HANDLE) -> io::Result<HANDLE> {
-    if return_value.is_null() {
+    if return_value == 0 {
         Err(io::Error::last_os_error())
     } else {
         Ok(return_value)

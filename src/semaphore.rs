@@ -1,6 +1,6 @@
 use std::{io, ptr};
 
-use winapi::um::synchapi::{CreateSemaphoreW, ReleaseSemaphore};
+use windows_sys::Win32::System::Threading::{CreateSemaphoreW, ReleaseSemaphore};
 
 use crate::{nonnull_handle_result, result, Handle};
 
@@ -14,9 +14,8 @@ impl Semaphore {
     /// This wraps
     /// [`CreateSemaphoreW`](https://docs.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-createsemaphorew).
     pub fn new() -> io::Result<Self> {
-        let handle = nonnull_handle_result(unsafe {
-            CreateSemaphoreW(ptr::null_mut(), 0, 1, ptr::null_mut())
-        })?;
+        let handle =
+            nonnull_handle_result(unsafe { CreateSemaphoreW(ptr::null(), 0, 1, ptr::null()) })?;
 
         let handle = unsafe { Handle::from_raw(handle) };
         Ok(Self(handle))

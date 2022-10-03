@@ -2,17 +2,17 @@
 
 use std::io::Result;
 use std::ops::Deref;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 use std::sync::Arc;
 
-use winapi::shared::minwindef::DWORD;
-use winapi::um::{
-    fileapi::{CreateFileW, OPEN_EXISTING},
-    handleapi::{CloseHandle, INVALID_HANDLE_VALUE},
-    processenv::GetStdHandle,
-    winbase::{STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
-    winnt::{FILE_SHARE_READ, FILE_SHARE_WRITE, GENERIC_READ, GENERIC_WRITE, HANDLE},
+use windows_sys::Win32::Foundation::{CloseHandle, HANDLE, INVALID_HANDLE_VALUE};
+use windows_sys::Win32::Storage::FileSystem::{
+    CreateFileW, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
 };
+use windows_sys::Win32::System::Console::{
+    GetStdHandle, STD_HANDLE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+};
+use windows_sys::Win32::System::SystemServices::{GENERIC_READ, GENERIC_WRITE};
 
 use super::handle_result;
 
@@ -114,18 +114,15 @@ impl Handle {
     /// This wraps
     /// [`CreateFileW`](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
     pub fn current_out_handle() -> Result<Handle> {
-        let utf16: Vec<u16> = "CONOUT$\0".encode_utf16().collect();
-        let utf16_ptr: *const u16 = utf16.as_ptr();
-
         let handle = handle_result(unsafe {
             CreateFileW(
-                utf16_ptr,
+                ::windows_sys::w!("CONOUT$"),
                 GENERIC_READ | GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
-                null_mut(),
+                null(),
                 OPEN_EXISTING,
                 0,
-                null_mut(),
+                0,
             )
         })?;
 
@@ -141,18 +138,15 @@ impl Handle {
     /// This wraps
     /// [`CreateFileW`](https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew).
     pub fn current_in_handle() -> Result<Handle> {
-        let utf16: Vec<u16> = "CONIN$\0".encode_utf16().collect();
-        let utf16_ptr: *const u16 = utf16.as_ptr();
-
         let handle = handle_result(unsafe {
             CreateFileW(
-                utf16_ptr,
+                ::windows_sys::w!("CONIN$"),
                 GENERIC_READ | GENERIC_WRITE,
                 FILE_SHARE_READ | FILE_SHARE_WRITE,
                 null_mut(),
                 OPEN_EXISTING,
                 0,
-                null_mut(),
+                0,
             )
         })?;
 
@@ -181,7 +175,7 @@ impl Handle {
         Self::std_handle(STD_INPUT_HANDLE)
     }
 
-    fn std_handle(which_std: DWORD) -> Result<Handle> {
+    fn std_handle(which_std: STD_HANDLE) -> Result<Handle> {
         let handle = handle_result(unsafe { GetStdHandle(which_std) })?;
 
         Ok(Handle {

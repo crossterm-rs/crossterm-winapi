@@ -1,6 +1,6 @@
 use std::io::Result;
 
-use winapi::um::consoleapi::{GetConsoleMode, SetConsoleMode};
+use windows_sys::Win32::System::Console::{GetConsoleMode, SetConsoleMode};
 
 use super::{result, Handle, HandleType};
 

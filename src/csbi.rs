@@ -1,7 +1,7 @@
 use std::fmt;
 use std::mem::zeroed;
 
-use winapi::um::wincon::CONSOLE_SCREEN_BUFFER_INFO;
+use windows_sys::Win32::System::Console::CONSOLE_SCREEN_BUFFER_INFO;
 
 use super::{Coord, Size, WindowPositions};
 
