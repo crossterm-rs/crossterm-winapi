@@ -2,7 +2,7 @@
 //! For example, in WinAPI we have `COORD` which looks and feels inconvenient.
 //! This module provides also some trait implementations who will make parsing and working with `COORD` easier.
 
-use winapi::um::wincon::COORD;
+use windows_sys::Win32::System::Console::COORD;
 
 /// This is type represents the position of something on a certain 'x' and 'y'.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, PartialOrd)]

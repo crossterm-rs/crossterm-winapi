@@ -3,14 +3,13 @@ use std::iter;
 use std::slice;
 use std::str;
 
-use winapi::ctypes::c_void;
-use winapi::shared::minwindef::DWORD;
-use winapi::shared::ntdef::NULL;
-use winapi::um::consoleapi::{GetNumberOfConsoleInputEvents, ReadConsoleInputW, WriteConsoleW};
-use winapi::um::wincon::{
+use std::ffi::c_void;
+use windows_sys::Win32::System::Console::{
     FillConsoleOutputAttribute, FillConsoleOutputCharacterA, GetLargestConsoleWindowSize,
-    SetConsoleTextAttribute, SetConsoleWindowInfo, COORD, INPUT_RECORD, SMALL_RECT,
+    GetNumberOfConsoleInputEvents, ReadConsoleInputW, SetConsoleTextAttribute,
+    SetConsoleWindowInfo, WriteConsoleW, COORD, INPUT_RECORD, SMALL_RECT,
 };
+const NULL: *mut c_void = 0 as *mut c_void;
 
 use super::{result, Coord, Handle, HandleType, InputRecord, WindowPositions};
 
@@ -75,7 +74,7 @@ impl Console {
             // fill the cells in console with blanks
             FillConsoleOutputCharacterA(
                 *self.handle,
-                filling_char as i8,
+                filling_char as u8,
                 cells_to_write,
                 COORD::from(start_location),
                 &mut chars_written,
@@ -157,7 +156,7 @@ impl Console {
     /// This wraps
     /// [`ReadConsoleInputW`](https://docs.microsoft.com/en-us/windows/console/readconsoleinput).
     pub fn read_single_input_event(&self) -> Result<InputRecord> {
-        let mut record: INPUT_RECORD = INPUT_RECORD::default();
+        let mut record: INPUT_RECORD = unsafe { ::std::mem::zeroed() };
 
         {
             // Convert an INPUT_RECORD to an &mut [INPUT_RECORD] of length 1
@@ -184,9 +183,10 @@ impl Console {
             return Ok(vec![]);
         }
 
-        let mut buf: Vec<INPUT_RECORD> = iter::repeat_with(INPUT_RECORD::default)
-            .take(buf_len as usize)
-            .collect();
+        let mut buf: Vec<INPUT_RECORD> =
+            iter::repeat_with(|| unsafe { ::std::mem::zeroed::<INPUT_RECORD>() })
+                .take(buf_len as usize)
+                .collect();
 
         let num_read = self.read_input(buf.as_mut_slice())?;
 
@@ -202,7 +202,7 @@ impl Console {
     /// This wraps
     /// [`GetNumberOfConsoleInputEvents`](https://docs.microsoft.com/en-us/windows/console/getnumberofconsoleinputevents).
     pub fn number_of_console_input_events(&self) -> Result<u32> {
-        let mut buf_len: DWORD = 0;
+        let mut buf_len = 0;
         result(unsafe { GetNumberOfConsoleInputEvents(*self.handle, &mut buf_len) })?;
         Ok(buf_len)
     }
