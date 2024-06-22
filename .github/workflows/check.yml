@@ -1,0 +1,88 @@
+name: Check
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  MSRV: "1.62.0"
+
+# ensure that the workflow is only triggered once per PR, subsequent pushes to the PR will cancel
+# and restart the workflow. See https://docs.github.com/en/actions/using-jobs/using-concurrency
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: fmt (stable)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+          targets: x86_64-pc-windows-msvc,x86_64-pc-windows-gnu
+      - name: Run cargo fmt
+        run: cargo fmt -- --check
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+  clippy:
+    name: clippy (${{ matrix.toolchain }})
+    runs-on: windows-latest
+    permissions:
+      checks: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # Get early warnings about new lints introduced in the beta channel
+        toolchain: [stable, beta]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          components: clippy
+          targets: x86_64-pc-windows-msvc,x86_64-pc-windows-gnu
+      - name: Run clippy action
+        uses: clechasseur/rs-clippy-check@v3
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+  doc:
+    # run docs generation on nightly rather than stable. This enables features like
+    # https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html which allows an
+    # API be documented as only available in some specific platforms.
+    name: doc (nightly)
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust nightly
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: x86_64-pc-windows-msvc,x86_64-pc-windows-gnu
+      - name: Run cargo doc
+        run: cargo doc --no-deps --all-features
+        env:
+          RUSTDOCFLAGS: --cfg docsrs
+  msrv:
+    # check that we can build using the minimal rust version that is specified by this crate
+    name: check msrv
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Rust ${{ env.MSRV }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ env.MSRV }}
+          targets: x86_64-pc-windows-msvc,x86_64-pc-windows-gnu
+      - name: cargo +${{ env.MSRV }} check
+        run: cargo check

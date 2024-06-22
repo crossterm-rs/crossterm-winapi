@@ -2,7 +2,7 @@
 //! For example, in WinAPI we have `COORD` which looks and feels inconvenient.
 //! This module provides also some trait implementations who will make parsing and working with `COORD` easier.
 
-use winapi::um::wincon::COORD;
+use windows::Win32::System::Console::COORD;
 
 /// This is type represents the position of something on a certain 'x' and 'y'.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, PartialOrd)]
@@ -35,8 +35,8 @@ impl From<Coord> for COORD {
     }
 }
 
-impl Into<(u16, u16)> for Coord {
-    fn into(self) -> (u16, u16) {
-        (self.x as u16, self.y as u16)
+impl From<Coord> for (u16, u16) {
+    fn from(val: Coord) -> Self {
+        (val.x as u16, val.y as u16)
     }
 }
