@@ -9,10 +9,18 @@ license = "MIT"
 keywords = ["winapi", "abstractions", "crossterm", "windows", "screen_buffer"]
 exclude = ["target", "Cargo.lock"]
 readme = "README.md"
-edition = "2018"
+edition = "2021"
+rust-version = "1.62.0"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version =  "0.3.8", features = ["winbase", "consoleapi", "processenv", "handleapi", "synchapi", "impl-default"] }
+winapi = { version = "0.3.8", features = [
+    "winbase",
+    "consoleapi",
+    "processenv",
+    "handleapi",
+    "synchapi",
+    "impl-default",
+] }
 
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"

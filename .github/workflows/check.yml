@@ -8,7 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  MSRV: "1.56.0"
+  MSRV: "1.62.0"
 
 # ensure that the workflow is only triggered once per PR, subsequent pushes to the PR will cancel
 # and restart the workflow. See https://docs.github.com/en/actions/using-jobs/using-concurrency
@@ -74,7 +74,7 @@ jobs:
           RUSTDOCFLAGS: --cfg docsrs
   msrv:
     # check that we can build using the minimal rust version that is specified by this crate
-    name: check (1.56.0)
+    name: check msrv
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
