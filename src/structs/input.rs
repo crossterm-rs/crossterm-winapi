@@ -9,8 +9,7 @@
 //! - `InputEventType`
 //! - `INPUT_RECORD`
 
-use winapi::shared::minwindef::DWORD;
-use winapi::um::wincon::{
+use windows::Win32::System::Console::{
     FOCUS_EVENT, FOCUS_EVENT_RECORD, FROM_LEFT_1ST_BUTTON_PRESSED, FROM_LEFT_2ND_BUTTON_PRESSED,
     FROM_LEFT_3RD_BUTTON_PRESSED, FROM_LEFT_4TH_BUTTON_PRESSED, INPUT_RECORD, KEY_EVENT,
     KEY_EVENT_RECORD, MENU_EVENT, MENU_EVENT_RECORD, MOUSE_EVENT, MOUSE_EVENT_RECORD,
@@ -18,6 +17,7 @@ use winapi::um::wincon::{
 };
 
 use super::Coord;
+
 use crate::ScreenBuffer;
 
 /// A [keyboard input event](https://docs.microsoft.com/en-us/windows/console/key-event-record-str).
@@ -51,11 +51,11 @@ impl KeyEventRecord {
     #[inline]
     fn from_winapi(record: &KEY_EVENT_RECORD) -> Self {
         KeyEventRecord {
-            key_down: record.bKeyDown != 0,
+            key_down: record.bKeyDown.as_bool(),
             repeat_count: record.wRepeatCount,
             virtual_key_code: record.wVirtualKeyCode,
             virtual_scan_code: record.wVirtualScanCode,
-            u_char: unsafe { *record.uChar.UnicodeChar() },
+            u_char: unsafe { record.uChar.UnicodeChar },
             control_key_state: ControlKeyState(record.dwControlKeyState),
         }
     }
@@ -121,9 +121,9 @@ pub struct ButtonState {
     state: i32,
 }
 
-impl From<DWORD> for ButtonState {
+impl From<u32> for ButtonState {
     #[inline]
-    fn from(event: DWORD) -> Self {
+    fn from(event: u32) -> Self {
         let state = event as i32;
         ButtonState { state }
     }
@@ -162,16 +162,6 @@ impl ButtonState {
     /// Returns whether there is a up scroll.
     pub fn scroll_up(&self) -> bool {
         self.state > 0
-    }
-
-    /// Returns whether there is a horizontal scroll to the right.
-    pub fn scroll_right(&self) -> bool {
-        self.state > 0
-    }
-
-    /// Returns whether there is a horizontal scroll to the left.
-    pub fn scroll_left(&self) -> bool {
-        self.state < 0
     }
 
     /// Returns the raw state.
@@ -228,8 +218,8 @@ pub enum EventFlags {
 }
 
 // TODO: Replace with TryFrom.
-impl From<DWORD> for EventFlags {
-    fn from(event: DWORD) -> Self {
+impl From<u32> for EventFlags {
+    fn from(event: u32) -> Self {
         match event {
             0x0000 => EventFlags::PressOrRelease,
             0x0002 => EventFlags::DoubleClick,
@@ -269,7 +259,7 @@ impl From<FOCUS_EVENT_RECORD> for FocusEventRecord {
     #[inline]
     fn from(record: FOCUS_EVENT_RECORD) -> Self {
         FocusEventRecord {
-            set_focus: record.bSetFocus != 0,
+            set_focus: record.bSetFocus.as_bool(),
         }
     }
 }
@@ -313,14 +303,14 @@ pub enum InputRecord {
 impl From<INPUT_RECORD> for InputRecord {
     #[inline]
     fn from(record: INPUT_RECORD) -> Self {
-        match record.EventType {
+        match record.EventType as u32 {
             KEY_EVENT => InputRecord::KeyEvent(KeyEventRecord::from_winapi(unsafe {
-                record.Event.KeyEvent()
+                &record.Event.KeyEvent
             })),
-            MOUSE_EVENT => InputRecord::MouseEvent(unsafe { *record.Event.MouseEvent() }.into()),
+            MOUSE_EVENT => InputRecord::MouseEvent(unsafe { record.Event.MouseEvent }.into()),
             WINDOW_BUFFER_SIZE_EVENT => InputRecord::WindowBufferSizeEvent({
                 let mut buffer =
-                    unsafe { WindowBufferSizeRecord::from(*record.Event.WindowBufferSizeEvent()) };
+                    unsafe { WindowBufferSizeRecord::from(record.Event.WindowBufferSizeEvent) };
                 let window = ScreenBuffer::current().unwrap().info().unwrap();
                 let screen_size = window.terminal_size();
 
@@ -329,8 +319,8 @@ impl From<INPUT_RECORD> for InputRecord {
 
                 buffer
             }),
-            FOCUS_EVENT => InputRecord::FocusEvent(unsafe { *record.Event.FocusEvent() }.into()),
-            MENU_EVENT => InputRecord::MenuEvent(unsafe { *record.Event.MenuEvent() }.into()),
+            FOCUS_EVENT => InputRecord::FocusEvent(unsafe { record.Event.FocusEvent }.into()),
+            MENU_EVENT => InputRecord::MenuEvent(unsafe { record.Event.MenuEvent }.into()),
             code => panic!("Unexpected INPUT_RECORD EventType: {}", code),
         }
     }

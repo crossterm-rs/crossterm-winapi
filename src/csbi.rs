@@ -1,7 +1,6 @@
 use std::fmt;
-use std::mem::zeroed;
 
-use winapi::um::wincon::CONSOLE_SCREEN_BUFFER_INFO;
+use windows::Win32::System::Console::CONSOLE_SCREEN_BUFFER_INFO;
 
 use super::{Coord, Size, WindowPositions};
 
@@ -31,9 +30,9 @@ impl fmt::Debug for ScreenBufferInfo {
 }
 
 impl ScreenBufferInfo {
-    /// Create a new console screen buffer without all zeroed properties.
+    /// Create a new console screen buffer with default (zeroed) properties.
     pub fn new() -> ScreenBufferInfo {
-        ScreenBufferInfo(unsafe { zeroed() })
+        ScreenBufferInfo(CONSOLE_SCREEN_BUFFER_INFO::default())
     }
 
     /// Get the size of the screen buffer.
@@ -64,7 +63,7 @@ impl ScreenBufferInfo {
     ///
     /// Will take `wAttributes` from the current screen buffer.
     pub fn attributes(&self) -> u16 {
-        self.0.wAttributes
+        self.0.wAttributes.0
     }
 
     /// Get the current column and row of the terminal cursor in the screen buffer.
@@ -72,6 +71,12 @@ impl ScreenBufferInfo {
     /// Will take `dwCursorPosition` from the current screen buffer.
     pub fn cursor_pos(&self) -> Coord {
         Coord::from(self.0.dwCursorPosition)
+    }
+}
+
+impl Default for ScreenBufferInfo {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

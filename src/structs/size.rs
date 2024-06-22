@@ -2,7 +2,7 @@
 //! For example, in WinAPI we have `COORD` to represent screen/buffer size but this is a little inconvenient.
 //! This module provides some trait implementations who will make parsing and working with `COORD` easier.
 
-use winapi::um::wincon::COORD;
+use windows::Win32::System::Console::COORD;
 
 /// This is type represents the size of something in width and height.
 #[derive(Copy, Clone, Debug, Default, Eq, PartialEq)]
@@ -24,8 +24,8 @@ impl From<COORD> for Size {
     }
 }
 
-impl Into<(u16, u16)> for Size {
-    fn into(self) -> (u16, u16) {
-        (self.width as u16, self.height as u16)
+impl From<Size> for (u16, u16) {
+    fn from(val: Size) -> Self {
+        (val.width as u16, val.height as u16)
     }
 }

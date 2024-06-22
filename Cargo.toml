@@ -13,14 +13,14 @@ edition = "2021"
 rust-version = "1.62.0"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3.8", features = [
-    "winbase",
-    "consoleapi",
-    "processenv",
-    "handleapi",
-    "synchapi",
-    "impl-default",
+# Note that 0.56.0 is the last version that supports Rust 1.62.0, the next version requires Rust
+# 1.70.0. This would prevent crossterm from being able to compile this on the stable version of
+# Debian (which ships with Rust 1.63.0).
+windows = { version = "0.56.0", features = [
+    "Win32_Security",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Console",
+    "Win32_System_Threading",
 ] }
-
 [package.metadata.docs.rs]
 default-target = "x86_64-pc-windows-msvc"

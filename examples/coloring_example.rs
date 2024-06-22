@@ -42,8 +42,8 @@ fn set_foreground_color() -> Result<()> {
 
     // background intensity is a separate value in attrs,
     // wee need to check if this was applied to the current bg color.
-    if (attrs & 0x0080 as u16) != 0 {
-        color = color | 0x0080 as u16;
+    if (attrs & 0x0080_u16) != 0 {
+        color |= 0x0080_u16;
     }
 
     // set the console text attribute to the new color value.

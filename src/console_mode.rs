@@ -1,8 +1,8 @@
 use std::io::Result;
 
-use winapi::um::consoleapi::{GetConsoleMode, SetConsoleMode};
+use windows::Win32::System::Console::{GetConsoleMode, SetConsoleMode, CONSOLE_MODE};
 
-use super::{result, Handle, HandleType};
+use super::{Handle, HandleType};
 
 /// A wrapper around a screen buffer, focusing on calls to get and set the console mode.
 ///
@@ -32,7 +32,8 @@ impl ConsoleMode {
     /// This wraps
     /// [`SetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/setconsolemode).
     pub fn set_mode(&self, console_mode: u32) -> Result<()> {
-        result(unsafe { SetConsoleMode(*self.handle, console_mode) })
+        unsafe { SetConsoleMode(*self.handle, CONSOLE_MODE(console_mode)) }?;
+        Ok(())
     }
 
     /// Get the console mode.
@@ -42,9 +43,9 @@ impl ConsoleMode {
     /// This wraps
     /// [`GetConsoleMode`](https://docs.microsoft.com/en-us/windows/console/getconsolemode).
     pub fn mode(&self) -> Result<u32> {
-        let mut console_mode = 0;
-        result(unsafe { GetConsoleMode(*self.handle, &mut console_mode) })?;
-        Ok(console_mode)
+        let mut console_mode = CONSOLE_MODE(0);
+        unsafe { GetConsoleMode(*self.handle, &mut console_mode) }?;
+        Ok(console_mode.0)
     }
 }
 
