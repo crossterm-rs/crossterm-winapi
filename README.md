@@ -1,14 +1,14 @@
-![Lines of Code][s7] [![Latest Version][s1]][l1] [![MIT][s2]][l2] [![docs][s3]][l3]
+[![GitHub Actions][s1]][l1] [![Latest Version][s2]][l2] [![MIT][s3]][l3] [![Docs][s4]][l4]
 
 # Crossterm Windows API Abstractions
 
-This crate provides some wrappers aground common used WinAPI functions.
+This crate provides some wrappers around commonly used WinAPI functions.
  
-The purpose of this library is originally meant for the [crossterm](https://github.com/crossterm-rs/crossterm),
-but could be used apart from it. Although, notice that it unstable right because some changes to the
-API could be expected.
+The purpose of this library is originally meant for
+[Crossterm](https://github.com/crossterm-rs/crossterm), but could be used apart from it. Although,
+notice that it is unstable right now because some changes to the API could be expected.
 
-# Features
+## Features
 
 This crate provides some abstractions over reading input, console screen buffer, and handle.
 
@@ -21,16 +21,18 @@ The following WinAPI calls:
 - Set/GetConsoleMode (e.g. console modes like disabling output)
 - SetConsoleTextAttribute (eg. coloring)
 - SetConsoleWindowInfo (changing the buffer location e.g. scrolling)
-- FillConsoleOutputAttribute, FillConsoleOutputCharacter (used to replace some block of cells with a color or character.)
+- FillConsoleOutputAttribute, FillConsoleOutputCharacter (used to replace some block of cells with a
+  color or character)
 - SetConsoleInfo
 - ReadConsoleW
 - Semaphore object handling
 
-# Example 
+## Examples
 
-The [examples](https://github.com/crossterm-rs/examples) repository has more complete and verbose examples.
+The [examples](https://github.com/crossterm-rs/examples) repository has more complete and verbose
+examples.
 
-## Screen buffer information
+### Screen buffer information
 
 ```rust 
 use crossterm_winapi::{ScreenBuffer, Handle};
@@ -48,7 +50,7 @@ fn print_screen_buffer_information() {
 }
 ```
 
-## Handle
+### Handle
 
 ```rust
 use crossterm_winapi::{HandleType, Handle};
@@ -61,13 +63,14 @@ fn get_different_handle_types() {
 }
 ```
 
-[s1]: https://img.shields.io/crates/v/crossterm_winapi.svg
-[l1]: https://crates.io/crates/crossterm_winapi
+[s1]: https://github.com/crossterm-rs/crossterm-winapi/actions/workflows/test.yml/badge.svg
+[l1]: https://github.com/crossterm-rs/crossterm-winapi/actions
 
-[s2]: https://img.shields.io/badge/license-MIT-blue.svg
-[l2]: LICENSE
+[s2]: https://img.shields.io/crates/v/crossterm_winapi.svg
+[l2]: https://crates.io/crates/crossterm_winapi
 
-[s3]: https://docs.rs/crossterm_winapi/badge.svg
-[l3]: https://docs.rs/crossterm_winapi/
+[s3]: https://img.shields.io/badge/license-MIT-blue.svg
+[l3]: LICENSE
 
-[s7]: https://travis-ci.org/crossterm-rs/crossterm.svg?branch=master
+[s4]: https://docs.rs/crossterm_winapi/badge.svg
+[l4]: https://docs.rs/crossterm_winapi
